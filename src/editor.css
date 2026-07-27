@@ -166,6 +166,12 @@ a {
   letter-spacing: -0.04em;
 }
 
+.field {
+  align-content: start;
+  align-self: start;
+  grid-auto-rows: max-content;
+}
+
 .field-wide {
   grid-column: 1 / -1;
 }
