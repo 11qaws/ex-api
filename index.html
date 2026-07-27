@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="치지직 팔로워 증가량을 일요일 링피트 시간으로 환산하는 방송용 위젯"
+    />
+    <title>유레카 링피트 팔로워 내기</title>
+  </head>
+  <body>
+    <main id="app" class="app">
+      <section
+        class="ringfit-widget"
+        data-state="loading"
+        aria-label="유레카 일요일 링피트 팔로워 내기"
+        aria-live="polite"
+      >
+        <span class="identity-rail" aria-hidden="true"></span>
+
+        <div class="follower-metric">
+          <span class="eyebrow">
+            <span class="live-dot" aria-hidden="true"></span>
+            지금 팔로워
+          </span>
+          <strong class="follower-count">
+            <span
+              class="follower-count-previous"
+              data-follower-previous
+              aria-hidden="true"
+            ></span>
+            <span class="follower-count-current" data-follower-count>—</span>
+          </strong>
+          <span class="baseline" data-baseline>기준 1,031명</span>
+        </div>
+
+        <div class="total-metric">
+          <span class="action-copy">팔로우 눌러서 일요일 링피트</span>
+          <strong class="total-copy">
+            적립
+            <mark><span data-total-duration>—</span></mark>
+          </strong>
+        </div>
+
+        <div class="increment-event" data-increment-event hidden>
+          <span>방금 적립</span>
+          <strong>+<span data-increment-duration>30초</span></strong>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,524 @@
+@import url("https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap");
+
+:root {
+  color-scheme: light;
+  font-family: "Gaegu", cursive;
+  font-synthesis: none;
+  --green: hsl(152 53% 56%);
+  --green-dark: hsl(152 48% 21%);
+  --paper: hsl(152 30% 96%);
+  --ink: hsl(152 34% 12%);
+  --ink-soft: hsl(152 18% 31%);
+  --orange: hsl(24 96% 57%);
+  --orange-dark: hsl(20 77% 29%);
+  --widget-width: 800px;
+  --widget-height: 100px;
+  --main-font-size: 48px;
+  --follower-width: clamp(220px, calc(var(--main-font-size) * 4.67), 420px);
+  --event-width: clamp(190px, calc(var(--main-font-size) * 4.04), 380px);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+.app {
+  width: 100%;
+  height: 100%;
+}
+
+.ringfit-widget {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: var(--follower-width) minmax(0, 1fr);
+  width: min(100vw, var(--widget-width));
+  height: min(100vh, var(--widget-height));
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid rgb(27 92 62 / 24%);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle, rgb(10 53 34 / 10%) 0 0.7px, transparent 0.9px)
+      0 0 / 7px 7px,
+    var(--paper);
+  box-shadow:
+    0 9px 26px rgb(11 46 31 / 17%),
+    inset 0 0 0 1px rgb(255 255 255 / 55%);
+  color: var(--ink);
+}
+
+.identity-rail {
+  position: absolute;
+  z-index: 5;
+  inset: 0 auto 0 0;
+  width: 9px;
+  background: linear-gradient(170deg, var(--green), rgb(54 146 102));
+}
+
+.follower-metric {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  height: 100%;
+  padding: 8px 24px 7px 28px;
+  flex-direction: column;
+  justify-content: center;
+  border-right: 2px dashed rgb(31 93 62 / 24%);
+  background: rgb(255 255 248 / 53%);
+  transform: rotate(-0.2deg);
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--ink-soft);
+  font-size: calc(var(--main-font-size) * 0.333);
+  font-weight: 700;
+  letter-spacing: -0.055em;
+  line-height: 0.9;
+}
+
+.live-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgb(50 161 105);
+  box-shadow: 0 0 0 4px rgb(50 161 105 / 14%);
+}
+
+.ringfit-widget[data-state="ready"] .live-dot {
+  animation: live-breathe 2.8s ease-in-out infinite;
+}
+
+.ringfit-widget[data-state="loading"] .live-dot,
+.ringfit-widget[data-state="refreshing"] .live-dot {
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.ringfit-widget[data-state="error"] .live-dot,
+.ringfit-widget[data-state="stale"] .live-dot {
+  background: var(--orange);
+  box-shadow: 0 0 0 4px rgb(245 102 35 / 16%);
+}
+
+.follower-count {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  margin-top: -5px;
+  font-size: calc(var(--main-font-size) * 1.074);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  letter-spacing: -0.065em;
+  line-height: 0.88;
+  text-overflow: ellipsis;
+  text-shadow: 3px 3px 0 rgb(57 161 109 / 20%);
+  white-space: nowrap;
+}
+
+.follower-count-current,
+.follower-count-previous {
+  display: block;
+  transform-origin: 36% 58%;
+}
+
+.follower-count-previous {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ringfit-widget.is-gain-update .follower-count-current {
+  animation: follower-new-in 620ms cubic-bezier(0.18, 0.9, 0.24, 1.3) both;
+}
+
+.ringfit-widget.is-gain-update .follower-count-previous {
+  animation: follower-old-out 360ms cubic-bezier(0.55, 0, 0.9, 0.45) both;
+}
+
+.baseline {
+  margin-top: 4px;
+  color: var(--ink-soft);
+  font-size: calc(var(--main-font-size) * 0.278);
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  line-height: 0.9;
+  white-space: nowrap;
+}
+
+.total-metric {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  min-width: 0;
+  height: 100%;
+  padding: 6px 24px 7px 30px;
+  flex-direction: column;
+  justify-content: center;
+  transition: padding-right 180ms ease-out;
+}
+
+.ringfit-widget.has-increment .total-metric {
+  padding-right: calc(var(--event-width) + 20px);
+}
+
+.action-copy {
+  align-self: flex-start;
+  color: var(--ink-soft);
+  font-size: calc(var(--main-font-size) * 0.5);
+  font-weight: 700;
+  letter-spacing: -0.07em;
+  line-height: 0.85;
+  transform: rotate(-1deg);
+}
+
+.total-copy {
+  overflow: hidden;
+  margin-top: 2px;
+  font-size: var(--main-font-size);
+  font-weight: 700;
+  letter-spacing: -0.078em;
+  line-height: 0.94;
+  text-overflow: ellipsis;
+  text-shadow:
+    3px 3px 0 rgb(57 161 109 / 24%),
+    -1px -1px 0 rgb(255 255 255 / 65%);
+  transform: rotate(-0.45deg) skewX(-1deg);
+  white-space: nowrap;
+}
+
+.total-copy mark {
+  position: relative;
+  isolation: isolate;
+  display: inline-block;
+  margin-left: 0.08em;
+  padding: 0 12px 3px 9px;
+  background: transparent;
+  color: var(--orange-dark);
+  font: inherit;
+  font-size: 1.14em;
+  box-decoration-break: clone;
+  text-shadow:
+    2px 2px 0 rgb(128 42 5 / 20%),
+    -1px -1px 0 rgb(255 211 174 / 55%);
+}
+
+.total-copy mark::before {
+  position: absolute;
+  z-index: -1;
+  inset: 7% 0 2%;
+  background:
+    linear-gradient(
+      178deg,
+      transparent 0 9%,
+      rgb(255 121 37 / 92%) 12% 88%,
+      transparent 91%
+    );
+  content: "";
+  transform-origin: left center;
+}
+
+.total-copy mark > span {
+  display: inline-block;
+  transform-origin: 45% 70%;
+}
+
+.ringfit-widget.is-gain-update .total-copy mark::before {
+  animation: highlighter-repaint 700ms 350ms cubic-bezier(0.18, 0.8, 0.25, 1)
+    both;
+}
+
+.ringfit-widget.is-gain-update .total-copy mark > span {
+  animation: total-number-land 560ms 430ms cubic-bezier(0.18, 0.9, 0.3, 1.35)
+    both;
+}
+
+.increment-event {
+  position: absolute;
+  z-index: 4;
+  top: 7%;
+  right: max(7px, 0.7%);
+  display: flex;
+  width: var(--event-width);
+  height: 86%;
+  padding: 10px 18px 9px 23px;
+  flex-direction: column;
+  justify-content: center;
+  clip-path: polygon(
+    7px 0,
+    calc(100% - 9px) 2px,
+    100% 11px,
+    calc(100% - 2px) calc(100% - 8px),
+    calc(100% - 12px) 100%,
+    0 calc(100% - 3px)
+  );
+  background:
+    repeating-linear-gradient(
+      -13deg,
+      transparent 0 6px,
+      rgb(112 35 4 / 6%) 7px 8px
+    ),
+    var(--orange);
+  box-shadow:
+    -5px 5px 0 rgb(91 42 18 / 28%),
+    -9px 9px 19px rgb(170 59 10 / 14%);
+  color: var(--orange-dark);
+  transform: rotate(-0.7deg);
+}
+
+.increment-event::after {
+  position: absolute;
+  z-index: -1;
+  inset: -21px;
+  background: repeating-conic-gradient(
+    from 4deg,
+    transparent 0 10deg,
+    rgb(119 47 10 / 42%) 11deg 12deg,
+    transparent 13deg 27deg
+  );
+  clip-path: polygon(0 41%, 100% 35%, 100% 66%, 0 61%);
+  content: "";
+  opacity: 0;
+  pointer-events: none;
+}
+
+.increment-event[hidden] {
+  display: none;
+}
+
+.increment-event > span {
+  font-size: calc(var(--main-font-size) * 0.315);
+  font-weight: 700;
+  letter-spacing: -0.06em;
+  line-height: 0.8;
+}
+
+.increment-event > strong {
+  overflow: hidden;
+  margin-top: 2px;
+  font-size: calc(var(--main-font-size) * 0.796);
+  font-weight: 700;
+  letter-spacing: -0.075em;
+  line-height: 0.95;
+  text-overflow: ellipsis;
+  text-shadow: 2px 2px 0 rgb(255 207 165 / 50%);
+  white-space: nowrap;
+}
+
+.increment-event.is-visible > strong {
+  animation: increment-number-hit 760ms 150ms
+    cubic-bezier(0.18, 0.9, 0.24, 1.25) both;
+}
+
+.increment-event.is-visible::after {
+  animation: impact-scribble 430ms 170ms ease-out both;
+}
+
+.increment-event.is-visible {
+  animation: increment-pop 6s both;
+}
+
+@keyframes increment-pop {
+  0% {
+    opacity: 0;
+    transform: translateX(76px) rotate(5deg) scale(0.82);
+  }
+
+  2% {
+    opacity: 0;
+    transform: translateX(76px) rotate(5deg) scale(0.82);
+  }
+
+  4% {
+    opacity: 1;
+    transform: translateX(-9px) rotate(-3.2deg) scale(1.07);
+  }
+
+  7% {
+    opacity: 1;
+    transform: translateX(4px) rotate(1.3deg) scale(0.98);
+  }
+
+  11%,
+  84% {
+    opacity: 1;
+    transform: translateX(0) rotate(-0.7deg) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(44px) rotate(3deg) skewX(-8deg) scale(0.86, 0.94);
+  }
+}
+
+@keyframes follower-old-out {
+  0% {
+    opacity: 1;
+    transform: translateY(0) rotate(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-72%) rotate(-3deg);
+  }
+}
+
+@keyframes follower-new-in {
+  0% {
+    opacity: 0;
+    transform: translateY(70%) rotate(3deg) scale(0.82);
+  }
+
+  58% {
+    opacity: 1;
+    transform: translateY(-5%) rotate(-1.5deg) scale(1.12);
+  }
+
+  78% {
+    transform: translateY(2%) rotate(0.7deg) scale(0.97);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotate(0) scale(1);
+  }
+}
+
+@keyframes increment-number-hit {
+  0%,
+  12% {
+    opacity: 0;
+    transform: scale(0.6) rotate(8deg);
+  }
+
+  42% {
+    opacity: 1;
+    transform: scale(1.3) rotate(-4deg);
+  }
+
+  62% {
+    transform: scale(0.92) rotate(2deg);
+  }
+
+  78% {
+    transform: scale(1.07) rotate(-1deg);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+@keyframes impact-scribble {
+  0% {
+    opacity: 0;
+    transform: scale(0.55) rotate(-3deg);
+  }
+
+  35% {
+    opacity: 0.75;
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.18) rotate(2deg);
+  }
+}
+
+@keyframes highlighter-repaint {
+  0% {
+    opacity: 0.35;
+    transform: scaleX(0);
+  }
+
+  70% {
+    opacity: 1;
+    transform: scaleX(1.035) rotate(-0.6deg);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scaleX(1) rotate(0);
+  }
+}
+
+@keyframes total-number-land {
+  0%,
+  20% {
+    opacity: 0;
+    transform: translateY(24%) rotate(4deg) scale(0.82);
+  }
+
+  66% {
+    opacity: 1;
+    transform: translateY(-3%) rotate(-2deg) scale(1.12);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotate(0) scale(1);
+  }
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.45;
+    transform: scale(0.82);
+  }
+}
+
+@keyframes live-breathe {
+  50% {
+    box-shadow: 0 0 0 6px rgb(50 161 105 / 7%);
+    opacity: 0.7;
+    transform: scale(0.88);
+  }
+}
+
+@media (max-width: 640px) {
+  .ringfit-widget {
+    grid-template-columns: 210px minmax(0, 1fr);
+  }
+
+  .follower-metric {
+    padding-left: 24px;
+  }
+
+  .follower-count {
+    font-size: calc(var(--main-font-size) * 0.95);
+  }
+
+  .total-copy {
+    font-size: calc(var(--main-font-size) * 0.9);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-dot,
+  .increment-event.is-visible,
+  .increment-event.is-visible::after,
+  .increment-event.is-visible > strong,
+  .ringfit-widget.is-gain-update .follower-count-current,
+  .ringfit-widget.is-gain-update .follower-count-previous,
+  .ringfit-widget.is-gain-update .total-copy mark::before,
+  .ringfit-widget.is-gain-update .total-copy mark > span {
+    animation: none;
+  }
+
+  .total-metric {
+    transition: none;
+  }
+}

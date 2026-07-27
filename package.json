@@ -1,0 +1,17 @@
+{
+  "name": "ex-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --test",
+    "lint": "oxlint src tests worker/src vite.config.js"
+  },
+  "devDependencies": {
+    "oxlint": "^1.12.0",
+    "vite": "^7.0.6"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ex-api",
+  "main": "src/index.js",
+  "compatibility_date": "2026-07-27",
+  "vars": {
+    "ALLOWED_ORIGIN": "https://11qaws.github.io"
+  }
+}
+
