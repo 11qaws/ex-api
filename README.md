@@ -14,6 +14,9 @@ max(현재 팔로워 - 1031, 0) × 0.5분
 - `worker/`: 치지직 응답을 CORS 안전하게 중계하는 Cloudflare Worker
 - `tests/`: 계산식과 API 응답 검증
 
+외곽 폼과 왼쪽 정체성 띠를 다른 위젯에서 재사용하려면
+[위젯 폼 명세](docs/WIDGET_FORM_SPEC.md)를 참고하세요.
+
 ## 로컬 실행
 
 ```bash

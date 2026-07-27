@@ -14,6 +14,13 @@
   --widget-width: 800px;
   --widget-height: 100px;
   --main-font-size: 48px;
+  --widget-border-width: 1px;
+  --widget-radius: 8px;
+  --paper-grid-size: 7px;
+  --identity-rail-width: 9px;
+  --follower-divider-width: 2px;
+  --event-top: 7%;
+  --event-height: 86%;
   --follower-width: clamp(220px, calc(var(--main-font-size) * 4.67), 420px);
   --event-width: clamp(190px, calc(var(--main-font-size) * 4.04), 380px);
 }
@@ -45,11 +52,11 @@ body {
   height: min(100vh, var(--widget-height));
   min-height: 0;
   overflow: hidden;
-  border: 1px solid rgb(27 92 62 / 24%);
-  border-radius: 8px;
+  border: var(--widget-border-width) solid rgb(27 92 62 / 24%);
+  border-radius: var(--widget-radius);
   background:
     radial-gradient(circle, rgb(10 53 34 / 10%) 0 0.7px, transparent 0.9px)
-      0 0 / 7px 7px,
+      0 0 / var(--paper-grid-size) var(--paper-grid-size),
     var(--paper);
   box-shadow:
     0 9px 26px rgb(11 46 31 / 17%),
@@ -61,7 +68,7 @@ body {
   position: absolute;
   z-index: 5;
   inset: 0 auto 0 0;
-  width: 9px;
+  width: var(--identity-rail-width);
   background: linear-gradient(170deg, var(--green), rgb(54 146 102));
 }
 
@@ -70,16 +77,19 @@ body {
   z-index: 2;
   display: flex;
   height: 100%;
-  padding: 8px 24px 7px 28px;
+  padding: 5px 24px 4px 28px;
   flex-direction: column;
   justify-content: center;
-  border-right: 2px dashed rgb(31 93 62 / 24%);
+  border-right: var(--follower-divider-width) dashed rgb(31 93 62 / 24%);
   background: rgb(255 255 248 / 53%);
   transform: rotate(-0.2deg);
 }
 
 .eyebrow {
+  position: relative;
+  z-index: 2;
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   gap: 7px;
   color: var(--ink-soft);
@@ -115,8 +125,9 @@ body {
 .follower-count {
   position: relative;
   display: block;
+  flex: 0 0 calc(var(--main-font-size) * 0.95);
   overflow: hidden;
-  margin-top: -5px;
+  margin-top: 1px;
   font-size: calc(var(--main-font-size) * 1.074);
   font-variant-numeric: tabular-nums;
   font-weight: 700;
@@ -149,7 +160,7 @@ body {
 }
 
 .baseline {
-  margin-top: 4px;
+  margin-top: 2px;
   color: var(--ink-soft);
   font-size: calc(var(--main-font-size) * 0.278);
   font-weight: 700;
@@ -248,12 +259,12 @@ body {
 .increment-event {
   position: absolute;
   z-index: 4;
-  top: 7%;
+  top: var(--event-top);
   right: max(7px, 0.7%);
   display: flex;
   width: var(--event-width);
-  height: 86%;
-  padding: 10px 18px 9px 23px;
+  height: var(--event-height);
+  padding: 7px 18px 6px 23px;
   flex-direction: column;
   justify-content: center;
   clip-path: polygon(
@@ -299,15 +310,15 @@ body {
 }
 
 .increment-event > span {
-  font-size: calc(var(--main-font-size) * 0.315);
+  font-size: calc(var(--main-font-size) * 0.42);
   font-weight: 700;
-  letter-spacing: -0.06em;
-  line-height: 0.8;
+  letter-spacing: -0.045em;
+  line-height: 0.82;
 }
 
 .increment-event > strong {
   overflow: hidden;
-  margin-top: 2px;
+  margin-top: 1px;
   font-size: calc(var(--main-font-size) * 0.796);
   font-weight: 700;
   letter-spacing: -0.075em;

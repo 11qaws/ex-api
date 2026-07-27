@@ -1,0 +1,157 @@
+# 위젯 폼 재사용 명세
+
+이 문서는 링피트 팔로워 위젯의 외곽 실루엣과 왼쪽 정체성 띠를 다른 방송용
+위젯에서도 같은 형태로 재사용하기 위한 기준입니다. 실제 값의 단일 진실원은
+`src/widget.css`의 `:root` 디자인 토큰입니다.
+
+## 1. 기본 캔버스
+
+| 항목 | 기본값 | 규칙 |
+| --- | ---: | --- |
+| 전체 크기 | `800 × 100px` | 가로세로 비율 `8:1` |
+| 외곽 테두리 | `1px` | 반투명 짙은 초록 |
+| 외곽 모서리 | `8px` | 네 모서리 동일 |
+| 내부 잘림 | `overflow: hidden` | 띠와 이벤트 폼도 외곽 안에서 잘림 |
+| 종이 점 간격 | `7 × 7px` | 전체 폼에 반복 |
+| 기본 배경 | 투명 | OBS 위에는 폼만 표시 |
+
+외곽 폼은 카드 여러 개를 이어 붙인 구조가 아니라 하나의 연속된 둥근 직사각형입니다.
+내부 구역은 별도 모서리나 그림자를 만들지 않습니다.
+
+```text
+전체 800 × 100px
+┌────────────── 둥근 모서리 8px / 테두리 1px ──────────────┐
+│▌ 왼쪽 팔로워 구역 약 224px │ 중앙 메시지 │ 이벤트 약 194px │
+└───────────────────────────────────────────────────────────┘
+ ↑
+ 9px 정체성 띠
+```
+
+## 2. 왼쪽 정체성 띠
+
+| 항목 | 값 |
+| --- | ---: |
+| 위치 | `left: 0; top: 0; bottom: 0` |
+| 너비 | `9px` |
+| 높이 | 폼 높이의 `100%` |
+| 기본 캔버스 대비 너비 | `1.125%` |
+| 쌓임 순서 | `z-index: 5` |
+| 색상 | `170deg` 초록 그라데이션 |
+
+띠는 그리드 열이 아니라 외곽 폼 위에 겹치는 절대 위치 요소입니다. 따라서 팔로워
+구역의 약 `224px` 안에 포함되며 전체 폭을 추가로 차지하지 않습니다.
+
+```css
+:root {
+  --identity-rail-width: 9px;
+}
+
+.identity-rail {
+  position: absolute;
+  z-index: 5;
+  inset: 0 auto 0 0;
+  width: var(--identity-rail-width);
+  background: linear-gradient(170deg, var(--green), rgb(54 146 102));
+}
+```
+
+위젯의 가로·세로만 URL로 변경해도 띠는 현재 구현처럼 `9px`을 유지합니다. 모든
+치수를 동일 비율로 확대하는 별도 파생 디자인이라면 띠도 같은 배율로 조정하되,
+원본 위젯과 같은 계열임을 보이려면 `8~12px` 범위를 권장합니다.
+
+## 3. 팔로워 구역
+
+팔로워 구역의 폭은 글자 크기를 따라가며 다음 식으로 계산합니다.
+
+```css
+--follower-width:
+  clamp(220px, calc(var(--main-font-size) * 4.67), 420px);
+```
+
+기본 글자 크기 `48px`에서는 `48 × 4.67 = 224.16px`입니다.
+
+| 항목 | 기본값 |
+| --- | ---: |
+| 구역 폭 | 약 `224.16px` |
+| 오른쪽 구분선 | `2px dashed` |
+| 내부 여백 | 위 `5px`, 오른쪽 `24px`, 아래 `4px`, 왼쪽 `28px` |
+| 정체성 띠와 콘텐츠 사이 | 왼쪽 여백 `28px` 중 띠 `9px`을 제외한 `19px` |
+
+## 4. 오른쪽 이벤트 폼
+
+이벤트 폼은 팔로워가 증가할 때만 나타나는 주황색 종이 조각입니다.
+
+| 항목 | 기본값 |
+| --- | ---: |
+| 폭 | `clamp(190px, 48px × 4.04, 380px)` = 약 `193.92px` |
+| 높이 | 전체 폼의 `86%` = `86px` |
+| 위쪽 위치 | 전체 폼의 `7%` = `7px` |
+| 오른쪽 여백 | `max(7px, 0.7%)` = 기본 `7px` |
+| 기본 좌측 좌표 | 약 `599.08px` |
+| 기본 회전 | `-0.7deg` |
+
+모서리는 균일한 둥근 사각형이 아니라 아래 좌표의 거친 종이 실루엣입니다.
+
+```css
+clip-path: polygon(
+  7px 0,
+  calc(100% - 9px) 2px,
+  100% 11px,
+  calc(100% - 2px) calc(100% - 8px),
+  calc(100% - 12px) 100%,
+  0 calc(100% - 3px)
+);
+```
+
+## 5. 복사용 최소 폼
+
+다른 위젯에서 형태만 재사용할 때 필요한 최소 토큰과 CSS입니다.
+
+```css
+:root {
+  --widget-width: 800px;
+  --widget-height: 100px;
+  --widget-border-width: 1px;
+  --widget-radius: 8px;
+  --paper-grid-size: 7px;
+  --identity-rail-width: 9px;
+}
+
+.broadcast-widget {
+  position: relative;
+  isolation: isolate;
+  width: min(100vw, var(--widget-width));
+  height: min(100vh, var(--widget-height));
+  overflow: hidden;
+  border: var(--widget-border-width) solid rgb(27 92 62 / 24%);
+  border-radius: var(--widget-radius);
+  background:
+    radial-gradient(circle, rgb(10 53 34 / 10%) 0 0.7px, transparent 0.9px)
+      0 0 / var(--paper-grid-size) var(--paper-grid-size),
+    hsl(152 30% 96%);
+}
+
+.broadcast-widget::before {
+  position: absolute;
+  z-index: 5;
+  inset: 0 auto 0 0;
+  width: var(--identity-rail-width);
+  background: linear-gradient(
+    170deg,
+    hsl(152 53% 56%),
+    rgb(54 146 102)
+  );
+  content: "";
+}
+```
+
+## 6. 변경 규칙
+
+- 원본 계열로 유지하려면 외곽 반경 `8px`, 띠 `9px`, 테두리 `1px`을 우선 고정합니다.
+- 높이가 `64px` 아래로 내려가면 현재 글자와 이벤트 폼의 가독성을 보장하지 않습니다.
+- 띠를 별도 그리드 열로 바꾸면 전체 정렬 기준이 달라지므로 재사용 시에도 오버레이
+  방식을 유지합니다.
+- 이벤트가 없는 파생 위젯은 오른쪽 폼을 삭제해도 되지만 외곽 폼과 띠의 치수는
+  그대로 유지합니다.
+- 폼 치수를 수정할 때는 이 문서보다 먼저 `src/widget.css`의 토큰을 변경하고,
+  문서의 기본값과 계산 예시를 함께 갱신합니다.
