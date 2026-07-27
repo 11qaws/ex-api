@@ -48,7 +48,7 @@ http://localhost:5173/ex-api/editor/
 | `channelId` | 유레카 채널 ID | 조회할 치지직 채널 |
 | `initial` | `1031` | 내기 시작 팔로워 수 |
 | `minutesPerFollower` | `0.5` | 팔로워 1명당 링피트 분 |
-| `refresh` | `30` | 새로고침 주기(15~300초) |
+| `refresh` | `30` | 새로고침 주기(10~300초) |
 | `api` | 빌드 환경변수 | Worker 주소 |
 | `preview` | 없음 | API 대신 지정 팔로워 수로 미리보기 |
 | `eventDelta` | `0` | 미리보기에서 새 팔로워 이벤트를 강제로 표시할 인원 |

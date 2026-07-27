@@ -84,7 +84,7 @@ export function parseWidgetConfig(search = "") {
   const refreshSeconds = boundedInteger(
     params.get("refresh"),
     DEFAULT_REFRESH_SECONDS,
-    15,
+    10,
     300,
   );
   const widgetWidth = boundedInteger(

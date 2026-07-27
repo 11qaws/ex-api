@@ -36,7 +36,7 @@ test("URL 설정을 안전한 범위로 제한한다", () => {
   );
 
   assert.equal(config.initialFollowers, 0);
-  assert.equal(config.refreshSeconds, 15);
+  assert.equal(config.refreshSeconds, 10);
   assert.equal(config.minutesPerFollower, 0.25);
   assert.equal(config.previewFollowers, 1040);
 });
@@ -81,6 +81,10 @@ test("새 팔로워 인원을 30초 단위 이벤트로 계산한다", () => {
 
 test("미리보기 증가 인원을 URL에서 받는다", () => {
   assert.equal(parseWidgetConfig("?eventDelta=3").previewEventDelta, 3);
+});
+
+test("편집기 라이브 미리보기용 10초 갱신을 허용한다", () => {
+  assert.equal(parseWidgetConfig("?refresh=10").refreshSeconds, 10);
 });
 
 test("위젯 가로·세로·폰트 크기를 안전한 범위에서 받는다", () => {

@@ -22,7 +22,9 @@
 ### 편집 상태
 
 - `draft`: 입력 폼의 현재 유효 설정. 모든 숫자는 위젯과 같은 경계로 제한한다.
-- `previewUrl`: `draft`에 `preview=1035`, `eventDelta=1`을 추가한 iframe 전용 URL.
+  새로고침 주기는 편집하지 않고 위젯 기본값 30초를 사용한다.
+- `previewUrl`: `draft`에 `preview=1035`, `eventDelta=1`, `refresh=10`을 추가한
+  iframe 전용 URL.
 - `widgetUrl`: `draft`만 포함한 OBS용 URL. `preview`, `eventDelta`를 절대 포함하지 않는다.
 - `copyState`: `idle | success | error`. 복사 결과를 짧은 상태 문구로 알린다.
 
@@ -39,7 +41,7 @@
 
 - 루트 위젯의 기존 URL 파라미터는 계속 지원한다.
 - 사용자 문구는 `textContent`로만 출력하고 길이를 제한한다.
-- 미리보기용 데이터는 실제 OBS 링크에 포함하지 않는다.
+- 미리보기용 데이터와 10초 갱신 설정은 실제 OBS 링크에 포함하지 않는다.
 - 편집기는 API 비밀값을 받거나 저장하지 않는다.
 - 800×100, 기준 1,031명, 팔로워당 30초가 기본값이다.
 

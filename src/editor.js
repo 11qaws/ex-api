@@ -4,7 +4,6 @@ import {
   DEFAULT_FONT_SIZE,
   DEFAULT_INITIAL_FOLLOWERS,
   DEFAULT_MINUTES_PER_FOLLOWER,
-  DEFAULT_REFRESH_SECONDS,
   parseWidgetConfig,
 } from "./ringfit.js";
 
@@ -65,7 +64,6 @@ function normalizedConfig() {
     "channelId",
     "initial",
     "minutesPerFollower",
-    "refresh",
     "width",
     "height",
     "fontSize",
@@ -84,7 +82,6 @@ function buildWidgetUrl(config, { preview = false } = {}) {
   params.set("channelId", config.channelId);
   params.set("initial", String(config.initialFollowers));
   params.set("minutesPerFollower", String(config.minutesPerFollower));
-  params.set("refresh", String(config.refreshSeconds));
   params.set("width", String(config.widgetWidth));
   params.set("height", String(config.widgetHeight));
   params.set("fontSize", String(config.fontSize));
@@ -99,6 +96,7 @@ function buildWidgetUrl(config, { preview = false } = {}) {
   if (preview) {
     params.set("preview", String(config.initialFollowers + 4));
     params.set("eventDelta", "1");
+    params.set("refresh", "10");
   }
 
   return url.toString();
@@ -228,7 +226,6 @@ if (
   formValue("channelId") !== DEFAULT_CHANNEL_ID ||
   Number(formValue("initial")) !== DEFAULT_INITIAL_FOLLOWERS ||
   Number(formValue("minutesPerFollower")) !== DEFAULT_MINUTES_PER_FOLLOWER ||
-  Number(formValue("refresh")) !== DEFAULT_REFRESH_SECONDS ||
   Number(formValue("fontSize")) !== DEFAULT_FONT_SIZE
 ) {
   form.reset();
