@@ -52,6 +52,18 @@ test("옵션이 없는 URL은 내기 기본값 1031명과 0.5분을 쓴다", () 
   assert.equal(config.widgetWidth, 800);
   assert.equal(config.widgetHeight, 100);
   assert.equal(config.fontSize, 48);
+  assert.equal(config.followerLabel, "지금 팔로워");
+  assert.equal(config.baselineText, "기준 {initial}명부터");
+  assert.equal(config.actionText, "팔로우 눌러서 일요일 링피트");
+  assert.equal(config.resultLabel, "적립");
+  assert.equal(config.eventLabel, "방금 적립");
+  assert.equal(config.followerLabelSize, 16);
+  assert.equal(config.followerCountSize, 52);
+  assert.equal(config.baselineSize, 13);
+  assert.equal(config.actionSize, 24);
+  assert.equal(config.totalSize, 48);
+  assert.equal(config.eventLabelSize, 20);
+  assert.equal(config.eventValueSize, 38);
 });
 
 test("초 단위 결과를 자연스러운 분·초 문장으로 바꾼다", () => {
@@ -82,4 +94,40 @@ test("위젯 가로·세로·폰트 크기를 안전한 범위에서 받는다",
   assert.equal(bounded.widgetWidth, 480);
   assert.equal(bounded.widgetHeight, 1080);
   assert.equal(bounded.fontSize, 120);
+});
+
+test("전체 폰트 크기를 바꾸면 위치별 기본 크기도 함께 비례한다", () => {
+  const config = parseWidgetConfig("?fontSize=72");
+
+  assert.equal(config.followerLabelSize, 24);
+  assert.equal(config.followerCountSize, 77);
+  assert.equal(config.baselineSize, 20);
+  assert.equal(config.actionSize, 36);
+  assert.equal(config.totalSize, 72);
+  assert.equal(config.eventLabelSize, 30);
+  assert.equal(config.eventValueSize, 57);
+});
+
+test("위치별 문구와 글자 크기를 URL에서 안전하게 받는다", () => {
+  const config = parseWidgetConfig(
+    "?followerLabel=%20%20팔로워%20체크%20%20&baselineText=기준%20{initial}명&actionText=눌러라!&resultLabel=누적&eventLabel=방금!&followerLabelSize=2&followerCountSize=999&totalSize=81",
+  );
+
+  assert.equal(config.followerLabel, "팔로워 체크");
+  assert.equal(config.baselineText, "기준 {initial}명");
+  assert.equal(config.actionText, "눌러라!");
+  assert.equal(config.resultLabel, "누적");
+  assert.equal(config.eventLabel, "방금!");
+  assert.equal(config.followerLabelSize, 10);
+  assert.equal(config.followerCountSize, 140);
+  assert.equal(config.totalSize, 81);
+});
+
+test("빈 문구는 기본 문구로 되돌리고 너무 긴 문구는 자른다", () => {
+  const config = parseWidgetConfig(
+    `?resultLabel=%20%20&followerLabel=${encodeURIComponent("가".repeat(40))}`,
+  );
+
+  assert.equal(config.resultLabel, "적립");
+  assert.equal(config.followerLabel.length, 30);
 });

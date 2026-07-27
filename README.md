@@ -1,6 +1,10 @@
 # ex-api
 
-치지직 팔로워 증가량을 일요일 링피트 시간으로 환산해 보여 주는 OBS용 위젯입니다.
+치지직 팔로워 증가량을 일요일 링피트 시간으로 환산해 보여 주는 OBS용 위젯과
+위젯 링크 편집기입니다.
+
+- 위젯: <https://11qaws.github.io/ex-api/>
+- 편집기: <https://11qaws.github.io/ex-api/editor/>
 
 기본 계산식은 다음과 같습니다.
 
@@ -10,7 +14,8 @@ max(현재 팔로워 - 1031, 0) × 0.5분
 
 ## 구성
 
-- `src/`: GitHub Pages에 배포되는 1280×100 방송 위젯
+- `src/`: GitHub Pages에 배포되는 800×100 방송 위젯과 편집기
+- `editor/`: 문구·크기·링크 생성 편집기 진입 페이지
 - `worker/`: 치지직 응답을 CORS 안전하게 중계하는 Cloudflare Worker
 - `tests/`: 계산식과 API 응답 검증
 
@@ -30,6 +35,12 @@ API 없이 디자인을 확인할 때:
 http://localhost:5173/ex-api/?preview=1033
 ```
 
+편집기:
+
+```text
+http://localhost:5173/ex-api/editor/
+```
+
 ## 위젯 URL 옵션
 
 | 파라미터 | 기본값 | 설명 |
@@ -44,6 +55,15 @@ http://localhost:5173/ex-api/?preview=1033
 | `width` | `800` | 위젯 가로 크기(px, 480~3840) |
 | `height` | `100` | 위젯 세로 크기(px, 64~1080) |
 | `fontSize` | `48` | 중앙 결과 문장의 기준 글자 크기(px, 24~120) |
+| `followerLabel` | `지금 팔로워` | 왼쪽 상단 문구 |
+| `baselineText` | `기준 {initial}명부터` | 왼쪽 하단 문구 (`{initial}` 치환) |
+| `actionText` | `팔로우 눌러서 일요일 링피트` | 중앙 행동 문구 |
+| `resultLabel` | `적립` | 총 적립 시간 앞 문구 |
+| `eventLabel` | `방금 적립` | 신규 팔로워 이벤트 문구 |
+
+위치별 글자 크기는 `followerLabelSize`, `followerCountSize`, `baselineSize`,
+`actionSize`, `totalSize`, `eventLabelSize`, `eventValueSize`로 조절할 수 있습니다.
+직접 파라미터를 입력하지 않아도 편집기가 안전한 범위의 링크를 만들어 줍니다.
 
 기본 OBS 브라우저 소스 권장 크기는 `800 × 100`입니다. 크기를 바꿀 때는 URL의
 `width`, `height`와 OBS 브라우저 소스의 가로·세로 값을 동일하게 맞춥니다.

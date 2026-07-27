@@ -5,6 +5,23 @@ export const DEFAULT_REFRESH_SECONDS = 30;
 export const DEFAULT_WIDGET_WIDTH = 800;
 export const DEFAULT_WIDGET_HEIGHT = 100;
 export const DEFAULT_FONT_SIZE = 48;
+export const DEFAULT_COPY = Object.freeze({
+  actionText: "팔로우 눌러서 일요일 링피트",
+  baselineText: "기준 {initial}명부터",
+  eventLabel: "방금 적립",
+  followerLabel: "지금 팔로워",
+  resultLabel: "적립",
+});
+
+const FONT_RATIOS = Object.freeze({
+  actionSize: 0.5,
+  baselineSize: 0.278,
+  eventLabelSize: 0.42,
+  eventValueSize: 0.796,
+  followerCountSize: 1.074,
+  followerLabelSize: 0.333,
+  totalSize: 1,
+});
 
 const CHANNEL_ID_PATTERN = /^[a-f0-9]{32}$/i;
 
@@ -20,6 +37,24 @@ function finiteNumber(value, fallback) {
 function boundedInteger(value, fallback, minimum, maximum) {
   const parsed = Math.trunc(finiteNumber(value, fallback));
   return Math.min(maximum, Math.max(minimum, parsed));
+}
+
+function boundedText(value, fallback, maximumLength) {
+  if (value === null || value === undefined) {
+    return fallback;
+  }
+
+  const normalized = String(value).replace(/\s+/g, " ").trim();
+  return normalized ? normalized.slice(0, maximumLength) : fallback;
+}
+
+function scaledFontSize(params, name, fontSize, minimum, maximum) {
+  return boundedInteger(
+    params.get(name),
+    Math.round(fontSize * FONT_RATIOS[name]),
+    minimum,
+    maximum,
+  );
 }
 
 export function isValidChannelId(value) {
@@ -70,6 +105,55 @@ export function parseWidgetConfig(search = "") {
     24,
     120,
   );
+  const followerLabelSize = scaledFontSize(
+    params,
+    "followerLabelSize",
+    fontSize,
+    10,
+    48,
+  );
+  const followerCountSize = scaledFontSize(
+    params,
+    "followerCountSize",
+    fontSize,
+    24,
+    140,
+  );
+  const baselineSize = scaledFontSize(
+    params,
+    "baselineSize",
+    fontSize,
+    9,
+    40,
+  );
+  const actionSize = scaledFontSize(
+    params,
+    "actionSize",
+    fontSize,
+    12,
+    80,
+  );
+  const totalSize = scaledFontSize(
+    params,
+    "totalSize",
+    fontSize,
+    24,
+    140,
+  );
+  const eventLabelSize = scaledFontSize(
+    params,
+    "eventLabelSize",
+    fontSize,
+    10,
+    50,
+  );
+  const eventValueSize = scaledFontSize(
+    params,
+    "eventValueSize",
+    fontSize,
+    18,
+    100,
+  );
   const previewValue = params.get("preview");
   const previewFollowers =
     previewValue === null
@@ -83,14 +167,46 @@ export function parseWidgetConfig(search = "") {
   );
 
   return {
+    actionSize,
+    actionText: boundedText(
+      params.get("actionText"),
+      DEFAULT_COPY.actionText,
+      60,
+    ),
     apiBase: params.get("api")?.replace(/\/+$/, "") ?? "",
+    baselineSize,
+    baselineText: boundedText(
+      params.get("baselineText"),
+      DEFAULT_COPY.baselineText,
+      50,
+    ),
     channelId,
+    eventLabel: boundedText(
+      params.get("eventLabel"),
+      DEFAULT_COPY.eventLabel,
+      20,
+    ),
+    eventLabelSize,
+    eventValueSize,
+    followerCountSize,
+    followerLabel: boundedText(
+      params.get("followerLabel"),
+      DEFAULT_COPY.followerLabel,
+      30,
+    ),
+    followerLabelSize,
     fontSize,
     initialFollowers,
     minutesPerFollower,
     previewEventDelta,
     previewFollowers,
     refreshSeconds,
+    resultLabel: boundedText(
+      params.get("resultLabel"),
+      DEFAULT_COPY.resultLabel,
+      20,
+    ),
+    totalSize,
     widgetHeight,
     widgetWidth,
   };

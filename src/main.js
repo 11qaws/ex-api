@@ -12,7 +12,11 @@ const followerCountElement = document.querySelector("[data-follower-count]");
 const previousFollowerCountElement = document.querySelector(
   "[data-follower-previous]",
 );
+const followerLabelElement = document.querySelector("[data-follower-label]");
 const baselineElement = document.querySelector("[data-baseline]");
+const actionTextElement = document.querySelector("[data-action-text]");
+const resultLabelElement = document.querySelector("[data-result-label]");
+const eventLabelElement = document.querySelector("[data-event-label]");
 const totalDurationElement = document.querySelector("[data-total-duration]");
 const incrementEventElement = document.querySelector("[data-increment-event]");
 const incrementDurationElement = document.querySelector("[data-increment-duration]");
@@ -41,10 +45,26 @@ document.documentElement.style.setProperty(
   "--main-font-size",
   `${config.fontSize}px`,
 );
+for (const [property, value] of [
+  ["--follower-label-font-size", config.followerLabelSize],
+  ["--follower-count-font-size", config.followerCountSize],
+  ["--baseline-font-size", config.baselineSize],
+  ["--action-font-size", config.actionSize],
+  ["--total-font-size", config.totalSize],
+  ["--event-label-font-size", config.eventLabelSize],
+  ["--event-value-font-size", config.eventValueSize],
+]) {
+  document.documentElement.style.setProperty(property, `${value}px`);
+}
 
-baselineElement.textContent = `기준 ${numberFormatter.format(
-  config.initialFollowers,
-)}명부터`;
+followerLabelElement.textContent = config.followerLabel;
+actionTextElement.textContent = config.actionText;
+resultLabelElement.textContent = config.resultLabel;
+eventLabelElement.textContent = config.eventLabel;
+baselineElement.textContent = config.baselineText.replaceAll(
+  "{initial}",
+  numberFormatter.format(config.initialFollowers),
+);
 
 function renderFollowerCount(followerCount) {
   const result = calculateRingFit(

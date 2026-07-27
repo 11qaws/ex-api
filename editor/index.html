@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="유레카 치지직 팔로워 링피트 위젯의 문구와 크기를 조절하고 OBS 링크를 만드는 편집기"
+    />
+    <title>유레카 위젯 편집기</title>
+  </head>
+  <body>
+    <header class="hero">
+      <div>
+        <p class="kicker">EUREKA WIDGET MAKER</p>
+        <h1>팔로우 적립판<br />내 맘대로 뜯어고치기</h1>
+      </div>
+      <p class="hero-note">
+        고치면 바로 보임;;<br />
+        다 됐으면 링크만 OBS에 넣기
+      </p>
+    </header>
+
+    <main class="editor-layout">
+      <form class="editor-form" data-editor-form>
+        <span class="form-rail" aria-hidden="true"></span>
+
+        <section class="form-section" aria-labelledby="copy-heading">
+          <div class="section-heading">
+            <span class="step-number">01</span>
+            <div>
+              <h2 id="copy-heading">문구부터 고치기</h2>
+              <p>위젯 위치별 문구를 그대로 입력하세요.</p>
+            </div>
+          </div>
+
+          <div class="field-grid">
+            <label class="field">
+              <span>팔로워 위 작은 글씨</span>
+              <input
+                type="text"
+                name="followerLabel"
+                value="지금 팔로워"
+                maxlength="30"
+              />
+            </label>
+            <label class="field">
+              <span>기준 안내</span>
+              <input
+                type="text"
+                name="baselineText"
+                value="기준 {initial}명부터"
+                maxlength="50"
+              />
+              <small><code>{initial}</code> 자리에 기준 팔로워 수가 들어갑니다.</small>
+            </label>
+            <label class="field field-wide">
+              <span>가운데 행동 문구</span>
+              <input
+                type="text"
+                name="actionText"
+                value="팔로우 눌러서 일요일 링피트"
+                maxlength="60"
+              />
+            </label>
+            <label class="field">
+              <span>결과 앞 글씨</span>
+              <input
+                type="text"
+                name="resultLabel"
+                value="적립"
+                maxlength="20"
+              />
+            </label>
+            <label class="field">
+              <span>주황 띠 작은 글씨</span>
+              <input
+                type="text"
+                name="eventLabel"
+                value="방금 적립"
+                maxlength="20"
+              />
+            </label>
+          </div>
+        </section>
+
+        <section class="form-section" aria-labelledby="size-heading">
+          <div class="section-heading">
+            <span class="step-number">02</span>
+            <div>
+              <h2 id="size-heading">폼 크기 잡기</h2>
+              <p>OBS 브라우저 소스 크기와 같은 값으로 맞추면 됩니다.</p>
+            </div>
+          </div>
+
+          <div class="size-grid">
+            <label class="number-field">
+              <span>가로</span>
+              <div><input type="number" name="width" value="800" min="480" max="3840" /><b>px</b></div>
+            </label>
+            <label class="number-field">
+              <span>세로</span>
+              <div><input type="number" name="height" value="100" min="64" max="1080" /><b>px</b></div>
+            </label>
+            <label class="number-field">
+              <span>전체 글자</span>
+              <div><input type="number" name="fontSize" value="48" min="24" max="120" /><b>px</b></div>
+            </label>
+          </div>
+
+          <label class="range-field">
+            <span>전체 글자 크기</span>
+            <input
+              type="range"
+              data-mirror="fontSize"
+              value="48"
+              min="24"
+              max="120"
+            />
+          </label>
+        </section>
+
+        <details class="advanced">
+          <summary>
+            <span><b>03</b> 위치별 글자 크기</span>
+            <small>필요할 때만 열기</small>
+          </summary>
+          <div class="advanced-body">
+            <p class="advanced-intro">전체 크기로 맞춘 뒤, 튀어나오는 글자만 따로 손보세요.</p>
+            <div class="font-grid">
+              <label class="compact-field"><span>팔로워 라벨</span><input type="number" name="followerLabelSize" value="16" min="10" max="48" /></label>
+              <label class="compact-field"><span>팔로워 숫자</span><input type="number" name="followerCountSize" value="52" min="24" max="140" /></label>
+              <label class="compact-field"><span>기준 안내</span><input type="number" name="baselineSize" value="13" min="9" max="40" /></label>
+              <label class="compact-field"><span>행동 문구</span><input type="number" name="actionSize" value="24" min="12" max="80" /></label>
+              <label class="compact-field"><span>적립 결과</span><input type="number" name="totalSize" value="48" min="24" max="140" /></label>
+              <label class="compact-field"><span>주황 띠 라벨</span><input type="number" name="eventLabelSize" value="20" min="10" max="50" /></label>
+              <label class="compact-field"><span>+30초 숫자</span><input type="number" name="eventValueSize" value="38" min="18" max="100" /></label>
+            </div>
+          </div>
+        </details>
+
+        <details class="advanced">
+          <summary>
+            <span><b>04</b> 팔로워 계산 설정</span>
+            <small>기본값 그대로 써도 됨</small>
+          </summary>
+          <div class="advanced-body data-grid">
+            <label class="field field-wide">
+              <span>치지직 채널 ID</span>
+              <input
+                type="text"
+                name="channelId"
+                value="3d5546fc8d0dcb478c973a9bc1328980"
+                maxlength="32"
+                spellcheck="false"
+              />
+            </label>
+            <label class="number-field">
+              <span>기준 팔로워</span>
+              <div><input type="number" name="initial" value="1031" min="0" max="1000000000" /><b>명</b></div>
+            </label>
+            <label class="number-field">
+              <span>1명당 적립</span>
+              <div><input type="number" name="minutesPerFollower" value="0.5" min="0" max="1440" step="0.5" /><b>분</b></div>
+            </label>
+            <label class="number-field">
+              <span>새로고침</span>
+              <div><input type="number" name="refresh" value="30" min="15" max="300" /><b>초</b></div>
+            </label>
+          </div>
+        </details>
+      </form>
+
+      <aside class="output-panel">
+        <div class="preview-heading">
+          <div>
+            <p class="kicker">LIVE PREVIEW</p>
+            <h2>지금 이렇게 나감</h2>
+          </div>
+          <span class="theme-stamp">유레카색 고정</span>
+        </div>
+
+        <div class="preview-shell">
+          <div class="preview-toolbar">
+            <span data-preview-size>800 × 100</span>
+            <button type="button" class="replay-button" data-replay>
+              +30초 다시 보기
+            </button>
+          </div>
+          <div class="preview-viewport" data-preview-viewport>
+            <div class="preview-canvas" data-preview-canvas>
+              <iframe
+                title="편집 중인 링피트 위젯 미리보기"
+                data-preview-frame
+              ></iframe>
+            </div>
+          </div>
+        </div>
+
+        <section class="link-maker" aria-labelledby="link-heading">
+          <p class="kicker">OBS WIDGET LINK</p>
+          <h2 id="link-heading">다 됐으면 이거 복사</h2>
+          <p>OBS 브라우저 소스 URL에 붙여넣고, 가로·세로도 위 값과 똑같이 설정하세요.</p>
+          <div class="link-row">
+            <input type="text" readonly data-widget-link aria-label="생성된 위젯 링크" />
+            <button type="button" data-copy-link>링크 복사</button>
+          </div>
+          <div class="link-actions">
+            <span role="status" aria-live="polite" data-copy-status></span>
+            <a href="../" target="_blank" rel="noreferrer" data-open-link>새 창에서 확인 ↗</a>
+          </div>
+        </section>
+      </aside>
+    </main>
+
+    <script type="module" src="/src/editor.js"></script>
+  </body>
+</html>

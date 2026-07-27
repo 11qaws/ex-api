@@ -14,6 +14,13 @@
   --widget-width: 800px;
   --widget-height: 100px;
   --main-font-size: 48px;
+  --follower-label-font-size: 16px;
+  --follower-count-font-size: 52px;
+  --baseline-font-size: 13px;
+  --action-font-size: 24px;
+  --total-font-size: 48px;
+  --event-label-font-size: 20px;
+  --event-value-font-size: 38px;
   --widget-border-width: 1px;
   --widget-radius: 8px;
   --paper-grid-size: 7px;
@@ -93,7 +100,7 @@ body {
   align-items: center;
   gap: 7px;
   color: var(--ink-soft);
-  font-size: calc(var(--main-font-size) * 0.333);
+  font-size: var(--follower-label-font-size);
   font-weight: 700;
   letter-spacing: -0.055em;
   line-height: 0.9;
@@ -128,7 +135,7 @@ body {
   flex: 0 0 calc(var(--main-font-size) * 0.95);
   overflow: hidden;
   margin-top: 1px;
-  font-size: calc(var(--main-font-size) * 1.074);
+  font-size: var(--follower-count-font-size);
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   letter-spacing: -0.065em;
@@ -162,7 +169,7 @@ body {
 .baseline {
   margin-top: 2px;
   color: var(--ink-soft);
-  font-size: calc(var(--main-font-size) * 0.278);
+  font-size: var(--baseline-font-size);
   font-weight: 700;
   letter-spacing: -0.045em;
   line-height: 0.9;
@@ -188,7 +195,7 @@ body {
 .action-copy {
   align-self: flex-start;
   color: var(--ink-soft);
-  font-size: calc(var(--main-font-size) * 0.5);
+  font-size: var(--action-font-size);
   font-weight: 700;
   letter-spacing: -0.07em;
   line-height: 0.85;
@@ -198,7 +205,7 @@ body {
 .total-copy {
   overflow: hidden;
   margin-top: 2px;
-  font-size: var(--main-font-size);
+  font-size: var(--total-font-size);
   font-weight: 700;
   letter-spacing: -0.078em;
   line-height: 0.94;
@@ -310,7 +317,7 @@ body {
 }
 
 .increment-event > span {
-  font-size: calc(var(--main-font-size) * 0.42);
+  font-size: var(--event-label-font-size);
   font-weight: 700;
   letter-spacing: -0.045em;
   line-height: 0.82;
@@ -319,7 +326,7 @@ body {
 .increment-event > strong {
   overflow: hidden;
   margin-top: 1px;
-  font-size: calc(var(--main-font-size) * 0.796);
+  font-size: var(--event-value-font-size);
   font-weight: 700;
   letter-spacing: -0.075em;
   line-height: 0.95;
@@ -509,11 +516,11 @@ body {
   }
 
   .follower-count {
-    font-size: calc(var(--main-font-size) * 0.95);
+    font-size: min(var(--follower-count-font-size), calc(var(--main-font-size) * 0.95));
   }
 
   .total-copy {
-    font-size: calc(var(--main-font-size) * 0.9);
+    font-size: min(var(--total-font-size), calc(var(--main-font-size) * 0.9));
   }
 }
 
