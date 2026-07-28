@@ -21,8 +21,30 @@
       </p>
     </header>
 
+    <nav class="mode-tabs" aria-label="위젯 종류">
+      <button
+        type="button"
+        class="mode-tab"
+        data-mode-tab="accrual"
+        aria-selected="true"
+      >
+        <span>01</span>
+        팔로우 적립
+      </button>
+      <button
+        type="button"
+        class="mode-tab"
+        data-mode-tab="countdown"
+        aria-selected="false"
+      >
+        <span>02</span>
+        벌칙 타이머
+      </button>
+    </nav>
+
     <main class="editor-layout">
       <form class="editor-form" data-editor-form>
+        <input type="hidden" name="mode" value="accrual" />
         <span class="form-rail" aria-hidden="true"></span>
 
         <section class="form-section" aria-labelledby="copy-heading">
@@ -81,6 +103,52 @@
                 maxlength="20"
               />
             </label>
+            <label
+              class="field"
+              data-mode-only="countdown"
+              hidden
+            >
+              <span>종료 시각 앞 글씨</span>
+              <input
+                type="text"
+                name="endLabel"
+                value="끝"
+                maxlength="12"
+              />
+            </label>
+          </div>
+
+          <div
+            class="countdown-setup"
+            data-mode-only="countdown"
+            hidden
+          >
+            <div class="countdown-setup-heading">
+              <b>TIMER</b>
+              <span>여기 적은 시각부터 자동으로 줄어듦</span>
+            </div>
+            <div class="field-grid">
+              <label class="field field-wide">
+                <span>벌칙 시작 시각 <small>한국시간</small></span>
+                <input
+                  type="datetime-local"
+                  name="startAt"
+                  value="2026-08-02T14:00"
+                  step="1"
+                />
+              </label>
+              <label class="field field-wide">
+                <span>게임 구분 이름</span>
+                <input
+                  type="text"
+                  name="session"
+                  value="20260802"
+                  maxlength="48"
+                  spellcheck="false"
+                />
+                <small>같은 이름은 최고 팔로워와 종료 상태를 이어서 씁니다.</small>
+              </label>
+            </div>
           </div>
         </section>
 
@@ -185,7 +253,7 @@
         <div class="preview-heading">
           <div>
             <p class="kicker">LIVE PREVIEW</p>
-            <h2>지금 이렇게 나감</h2>
+            <h2 data-preview-title>지금 이렇게 나감</h2>
           </div>
           <span class="theme-stamp" data-theme-stamp>유리 테마 · 뒤가 비침</span>
         </div>
@@ -209,8 +277,8 @@
 
         <section class="link-maker" aria-labelledby="link-heading">
           <p class="kicker">OBS WIDGET LINK</p>
-          <h2 id="link-heading">다 됐으면 이거 복사</h2>
-          <p>OBS 브라우저 소스 URL에 붙여넣고, 가로·세로도 위 값과 똑같이 설정하세요.</p>
+          <h2 id="link-heading" data-link-title>다 됐으면 이거 복사</h2>
+          <p data-link-description>OBS 브라우저 소스 URL에 붙여넣고, 가로·세로도 위 값과 똑같이 설정하세요.</p>
           <div class="link-row">
             <input type="text" readonly data-widget-link aria-label="생성된 위젯 링크" />
             <button type="button" data-copy-link>링크 복사</button>

@@ -2,8 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  calculateCountdownState,
   calculateIncrementSeconds,
   calculateRingFit,
+  formatClockTime,
   formatDurationSeconds,
   formatDurationParts,
   formatMinutes,
@@ -73,6 +75,81 @@ test("유리 테마를 기본값으로 사용하고 종이 테마도 URL 옵션�
   assert.equal(parseWidgetConfig("?theme=glass").theme, "glass");
   assert.equal(parseWidgetConfig("?theme=paper").theme, "paper");
   assert.equal(parseWidgetConfig("?theme=unknown").theme, "glass");
+});
+
+test("벌칙 타이머 URL은 시작시각과 전용 문구를 읽는다", () => {
+  const config = parseWidgetConfig(
+    "?mode=countdown&startAt=1785646800&session=20260802",
+  );
+
+  assert.equal(config.mode, "countdown");
+  assert.equal(config.startAtMs, 1_785_646_800_000);
+  assert.equal(config.sessionId, "20260802");
+  assert.equal(config.actionText, "팔로우 누르면 링피트 +30초;;");
+  assert.equal(config.resultLabel, "남은");
+  assert.equal(config.endLabel, "끝");
+});
+
+test("알 수 없는 모드는 기존 적립 위젯으로 되돌린다", () => {
+  const config = parseWidgetConfig("?mode=unknown");
+
+  assert.equal(config.mode, "accrual");
+  assert.equal(config.startAtMs, null);
+  assert.equal(config.resultLabel, "적립");
+});
+
+test("절대 시작시각과 팔로워 적립량으로 남은시간과 종료시각을 계산한다", () => {
+  const startAtMs = Date.UTC(2026, 7, 2, 5, 0, 0);
+  const beforeGain = calculateCountdownState({
+    followerCount: 1270,
+    initialFollowers: 1031,
+    minutesPerFollower: 0.5,
+    nowMs: startAtMs,
+    startAtMs,
+  });
+  const afterGain = calculateCountdownState({
+    followerCount: 1271,
+    initialFollowers: 1031,
+    minutesPerFollower: 0.5,
+    nowMs: startAtMs,
+    startAtMs,
+  });
+
+  assert.equal(beforeGain.remainingSeconds, 7170);
+  assert.equal(afterGain.remainingSeconds, 7200);
+  assert.equal(afterGain.endAtMs - beforeGain.endAtMs, 30_000);
+});
+
+test("OBS가 늦게 로딩돼도 실제 경과시간만큼 즉시 차감한다", () => {
+  const startAtMs = 1_000_000;
+  const state = calculateCountdownState({
+    followerCount: 1271,
+    initialFollowers: 1031,
+    minutesPerFollower: 0.5,
+    nowMs: startAtMs + 70_400,
+    startAtMs,
+  });
+
+  assert.equal(state.remainingSeconds, 7130);
+  assert.equal(state.hasStarted, true);
+  assert.equal(state.hasEnded, false);
+});
+
+test("예상 종료시각은 한국시간 시계와 자정 이후 날짜를 표시한다", () => {
+  const reference = Date.UTC(2026, 7, 2, 14, 59, 30);
+
+  assert.equal(
+    formatClockTime(reference, {
+      referenceTimestampMs: reference,
+    }),
+    "23:59:30",
+  );
+  assert.equal(
+    formatClockTime(reference + 60_000, {
+      referenceTimestampMs: reference,
+    }),
+    "8.3. 00:00:30",
+  );
 });
 
 test("초 단위 결과를 자연스러운 시간·분·초 문장으로 바꾼다", () => {

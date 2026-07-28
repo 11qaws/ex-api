@@ -1,0 +1,385 @@
+.result-row {
+  display: flex;
+  min-width: 0;
+  align-items: flex-end;
+}
+
+.result-row .total-copy {
+  min-width: 0;
+}
+
+.ending-clock[hidden] {
+  display: none;
+}
+
+.ringfit-widget[data-mode="countdown"] .total-metric {
+  padding: 5px 15px 6px 22px;
+}
+
+.ringfit-widget[data-mode="countdown"] .action-copy {
+  max-width: calc(100% - 118px);
+  overflow: hidden;
+  font-size: min(var(--action-font-size), 22px);
+  line-height: 0.9;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ringfit-widget[data-mode="countdown"] .result-row {
+  width: 100%;
+  margin-top: 2px;
+  gap: 10px;
+}
+
+.ringfit-widget[data-mode="countdown"] .total-copy {
+  flex: 1 1 auto;
+  margin-top: 0;
+  font-size: min(var(--total-font-size), calc(var(--main-font-size) * 0.84));
+  line-height: 0.9;
+}
+
+.ringfit-widget[data-mode="countdown"] [data-result-label] {
+  margin-right: 0.05em;
+  font-size: 0.62em;
+  letter-spacing: -0.045em;
+  vertical-align: 0.12em;
+}
+
+.ringfit-widget[data-mode="countdown"] .total-duration {
+  font-size: 1.06em;
+}
+
+.ending-clock {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  width: clamp(100px, calc(var(--main-font-size) * 2.18), 116px);
+  min-width: 0;
+  padding: 1px 0 0 10px;
+  border-left: 1px solid rgb(31 93 62 / 24%);
+  align-self: stretch;
+  align-content: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.ending-label {
+  color: var(--ink-soft);
+  font-size: max(11px, calc(var(--main-font-size) * 0.27));
+  font-weight: 700;
+  letter-spacing: -0.055em;
+  line-height: 0.8;
+}
+
+.ending-time {
+  position: relative;
+  display: block;
+  height: calc(var(--main-font-size) * 0.5);
+  overflow: hidden;
+  color: var(--ink);
+  font-size: max(18px, calc(var(--main-font-size) * 0.5));
+  font-weight: 700;
+  letter-spacing: -0.055em;
+  line-height: 1;
+  text-shadow: 2px 2px 0 rgb(57 161 109 / 20%);
+  white-space: nowrap;
+}
+
+.ending-time-current,
+.ending-time-previous {
+  position: absolute;
+  inset: 0 auto auto 0;
+  transform-origin: 50% 65%;
+}
+
+.ending-time-previous {
+  opacity: 0;
+}
+
+.ending-clock::after {
+  position: absolute;
+  z-index: -1;
+  right: -4px;
+  bottom: 1px;
+  left: 7px;
+  height: 5px;
+  background: linear-gradient(
+    178deg,
+    transparent 0 12%,
+    rgb(255 121 37 / 86%) 18% 84%,
+    transparent 91%
+  );
+  content: "";
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+.countdown-relay {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.countdown-relay::before,
+.countdown-relay::after {
+  position: absolute;
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(255 121 37 / 84%) 38%,
+    rgb(255 121 37 / 96%)
+  );
+  content: "";
+  opacity: 0;
+  filter: drop-shadow(0 0 5px rgb(255 92 37 / 22%));
+}
+
+.countdown-relay::before {
+  top: 34px;
+  right: 101px;
+  width: min(210px, 48%);
+  transform: rotate(-7deg) scaleX(0);
+  transform-origin: right center;
+}
+
+.countdown-relay::after {
+  right: 103px;
+  bottom: 9px;
+  width: min(145px, 34%);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+.ringfit-widget[data-mode="countdown"].is-countdown-gain
+  .countdown-relay::before {
+  animation: relay-to-timer 360ms 120ms ease-out both;
+}
+
+.ringfit-widget[data-mode="countdown"].is-countdown-gain
+  .countdown-relay::after {
+  animation: relay-to-clock 360ms 510ms ease-out both;
+}
+
+.ringfit-widget[data-mode="countdown"].is-gain-update
+  .ending-time-current {
+  animation: ending-time-in 480ms 580ms cubic-bezier(0.18, 0.9, 0.24, 1.22)
+    both;
+}
+
+.ringfit-widget[data-mode="countdown"].is-gain-update
+  .ending-time-previous {
+  animation: ending-time-out 300ms 560ms cubic-bezier(0.55, 0, 0.9, 0.45)
+    both;
+}
+
+.ringfit-widget[data-mode="countdown"].is-countdown-gain .ending-clock {
+  animation: ending-clock-push 440ms 610ms cubic-bezier(0.18, 0.9, 0.3, 1.2)
+    both;
+}
+
+.ringfit-widget[data-mode="countdown"].is-countdown-gain
+  .ending-clock::after {
+  animation: ending-underline 1.5s 690ms ease-out both;
+}
+
+.ringfit-widget[data-mode="countdown"].is-countdown-gain-exit
+  .total-duration
+  mark::before {
+  animation: countdown-highlight-fold 320ms ease-in both;
+}
+
+.ringfit-widget[data-mode="countdown"][data-countdown-state="running"]:not(
+    .is-countdown-gain
+  )
+  .duration-unit[data-unit="seconds"] {
+  animation: countdown-tick 170ms ease-out both;
+}
+
+.ringfit-widget[data-mode="countdown"][data-countdown-state="waiting"]
+  .action-copy::before {
+  content: "시작 전 · ";
+}
+
+.ringfit-widget[data-mode="countdown"][data-countdown-state="ended"]
+  .total-copy {
+  color: var(--orange-dark);
+}
+
+.ringfit-widget[data-theme="glass"] .ending-clock {
+  border-left-color: rgb(255 255 255 / 32%);
+}
+
+.ringfit-widget[data-theme="glass"] .ending-label,
+.ringfit-widget[data-theme="glass"] .ending-time {
+  color: rgb(255 255 255);
+  text-shadow: 0 1px 4px rgb(0 0 0 / 72%);
+}
+
+.ringfit-widget[data-theme="glass"] .ending-clock::after {
+  background: linear-gradient(
+    178deg,
+    transparent 0 12%,
+    rgb(255 77 48 / 58%) 18% 84%,
+    transparent 91%
+  );
+  box-shadow: 0 0 9px rgb(255 69 43 / 16%);
+}
+
+@keyframes relay-to-timer {
+  0% {
+    opacity: 0;
+    transform: rotate(-7deg) scaleX(0.08);
+  }
+
+  42% {
+    opacity: 0.9;
+    transform: rotate(-7deg) scaleX(1.05);
+  }
+
+  100% {
+    opacity: 0;
+    transform: rotate(-7deg) scaleX(0.2) translateX(-34px);
+  }
+}
+
+@keyframes relay-to-clock {
+  0% {
+    opacity: 0;
+    transform: scaleX(0.08);
+  }
+
+  48% {
+    opacity: 0.95;
+    transform: scaleX(1.06);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scaleX(0.2) translateX(52px);
+  }
+}
+
+@keyframes ending-time-out {
+  0% {
+    opacity: 1;
+    transform: translateX(0) rotate(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(34%) rotate(3deg);
+  }
+}
+
+@keyframes ending-time-in {
+  0%,
+  14% {
+    opacity: 0;
+    transform: translateX(-28%) scale(0.82) rotate(-3deg);
+  }
+
+  68% {
+    opacity: 1;
+    transform: translateX(5%) scale(1.08) rotate(1deg);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1) rotate(0);
+  }
+}
+
+@keyframes ending-clock-push {
+  0%,
+  32% {
+    transform: translateX(0);
+  }
+
+  62% {
+    transform: translateX(7px) rotate(0.5deg);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@keyframes ending-underline {
+  0%,
+  8% {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+
+  34%,
+  76% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scaleX(0);
+    transform-origin: right center;
+  }
+}
+
+@keyframes countdown-highlight-fold {
+  0% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scaleX(0);
+    transform-origin: right center;
+  }
+}
+
+@keyframes countdown-tick {
+  0% {
+    opacity: 0.45;
+    transform: translateY(-12%);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .ringfit-widget[data-mode="countdown"] .total-metric {
+    padding-right: 10px;
+    padding-left: 15px;
+  }
+
+  .ringfit-widget[data-mode="countdown"] .total-copy {
+    font-size: min(var(--total-font-size), 37px);
+  }
+
+  .ending-clock {
+    width: 96px;
+    padding-left: 7px;
+  }
+
+  .ending-time {
+    font-size: 21px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ringfit-widget[data-mode="countdown"] .countdown-relay::before,
+  .ringfit-widget[data-mode="countdown"] .countdown-relay::after,
+  .ringfit-widget[data-mode="countdown"] .ending-clock,
+  .ringfit-widget[data-mode="countdown"] .ending-clock::after,
+  .ringfit-widget[data-mode="countdown"] .ending-time-current,
+  .ringfit-widget[data-mode="countdown"] .ending-time-previous,
+  .ringfit-widget[data-mode="countdown"] .duration-unit {
+    animation: none !important;
+  }
+}

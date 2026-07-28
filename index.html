@@ -39,10 +39,24 @@
           <span class="action-copy" data-action-text
             >팔로우 눌러서 일요일 링피트</span
           >
-          <strong class="total-copy">
-            <span data-result-label>적립</span>
-            <span class="total-duration" data-total-duration>—</span>
-          </strong>
+          <div class="result-row">
+            <strong class="total-copy">
+              <span data-result-label>적립</span>
+              <span class="total-duration" data-total-duration>—</span>
+            </strong>
+            <div class="ending-clock" data-ending-clock hidden>
+              <span class="ending-label" data-end-label>끝</span>
+              <strong class="ending-time">
+                <span
+                  class="ending-time-previous"
+                  data-ending-time-previous
+                  aria-hidden="true"
+                ></span>
+                <span class="ending-time-current" data-ending-time>—</span>
+              </strong>
+            </div>
+          </div>
+          <span class="countdown-relay" aria-hidden="true"></span>
         </div>
 
         <div class="increment-event" data-increment-event hidden>

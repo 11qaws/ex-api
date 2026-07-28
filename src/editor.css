@@ -81,6 +81,50 @@ a {
   transform: rotate(1.2deg);
 }
 
+.mode-tabs {
+  display: flex;
+  width: min(1440px, calc(100% - 48px));
+  margin: 0 auto 14px;
+  gap: 8px;
+}
+
+.mode-tab {
+  position: relative;
+  min-width: 170px;
+  padding: 10px 17px 8px;
+  border: 1px solid rgb(22 76 51 / 24%);
+  border-radius: 6px 6px 2px 2px;
+  background: rgb(248 255 249 / 72%);
+  color: #47715d;
+  cursor: pointer;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.055em;
+  transition:
+    background 150ms ease-out,
+    color 150ms ease-out,
+    transform 150ms ease-out;
+}
+
+.mode-tab span {
+  margin-right: 7px;
+  color: #57a77e;
+  font-family: ui-monospace, "Cascadia Mono", monospace;
+  font-size: 11px;
+}
+
+.mode-tab[aria-selected="true"] {
+  border-color: #287e56;
+  background: var(--green-deep);
+  color: white;
+  box-shadow: 4px 4px 0 rgb(255 120 41 / 72%);
+  transform: translateY(-2px) rotate(-0.35deg);
+}
+
+.mode-tab[aria-selected="true"] span {
+  color: #8ee2b7;
+}
+
 .editor-layout {
   display: grid;
   width: min(1440px, calc(100% - 48px));
@@ -214,6 +258,45 @@ a {
 
 .field code {
   color: var(--orange-deep);
+}
+
+.countdown-setup {
+  margin-top: 20px;
+  padding: 15px 14px 14px;
+  border: 2px dashed rgb(255 120 41 / 52%);
+  border-radius: 7px;
+  background:
+    linear-gradient(135deg, rgb(255 120 41 / 7%), transparent 58%),
+    #fffdf6;
+}
+
+.countdown-setup-heading {
+  display: flex;
+  margin-bottom: 12px;
+  align-items: center;
+  gap: 9px;
+}
+
+.countdown-setup-heading b {
+  padding: 3px 6px 2px;
+  background: var(--orange);
+  color: var(--orange-deep);
+  font-family: ui-monospace, "Cascadia Mono", monospace;
+  font-size: 11px;
+}
+
+.countdown-setup-heading span {
+  color: #76543f;
+  font-family: system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.countdown-setup .field > span small {
+  margin-left: 4px;
+  color: #9b5b35;
+  font-family: system-ui, sans-serif;
+  font-size: 10px;
 }
 
 .size-grid {
@@ -641,6 +724,7 @@ a:focus-visible {
 
 @media (max-width: 680px) {
   .hero,
+  .mode-tabs,
   .editor-layout {
     width: min(100% - 24px, 1440px);
   }
@@ -658,6 +742,17 @@ a:focus-visible {
   .hero-note {
     align-self: flex-end;
     font-size: 17px;
+  }
+
+  .mode-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mode-tab {
+    min-width: 0;
+    padding-inline: 10px;
+    font-size: 19px;
   }
 
   .field-grid,

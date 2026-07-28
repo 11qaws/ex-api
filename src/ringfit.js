@@ -6,12 +6,19 @@ export const DEFAULT_WIDGET_WIDTH = 650;
 export const DEFAULT_WIDGET_HEIGHT = 100;
 export const DEFAULT_FONT_SIZE = 48;
 export const DEFAULT_WIDGET_THEME = "glass";
+export const DEFAULT_WIDGET_MODE = "accrual";
 export const DEFAULT_COPY = Object.freeze({
   actionText: "팔로우 눌러서 일요일 링피트",
   baselineText: "기준 {initial}명부터",
   eventLabel: "방금 추가",
   followerLabel: "지금 팔로워",
   resultLabel: "적립",
+});
+export const DEFAULT_COUNTDOWN_COPY = Object.freeze({
+  ...DEFAULT_COPY,
+  actionText: "팔로우 누르면 링피트 +30초;;",
+  endLabel: "끝",
+  resultLabel: "남은",
 });
 
 const FONT_RATIOS = Object.freeze({
@@ -26,6 +33,7 @@ const FONT_RATIOS = Object.freeze({
 
 const CHANNEL_ID_PATTERN = /^[a-f0-9]{32}$/i;
 const WIDGET_THEMES = new Set(["glass", "paper"]);
+const WIDGET_MODES = new Set(["accrual", "countdown"]);
 
 function finiteNumber(value, fallback) {
   if (value === null || value === undefined || value === "") {
@@ -59,12 +67,36 @@ function scaledFontSize(params, name, fontSize, minimum, maximum) {
   );
 }
 
+function timestampMilliseconds(value) {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+
+  const numericValue = Number(value);
+  if (Number.isFinite(numericValue)) {
+    const milliseconds =
+      Math.abs(numericValue) < 10_000_000_000
+        ? numericValue * 1000
+        : numericValue;
+    return Math.max(0, Math.trunc(milliseconds));
+  }
+
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? Math.max(0, parsed) : null;
+}
+
 export function isValidChannelId(value) {
   return CHANNEL_ID_PATTERN.test(value);
 }
 
 export function parseWidgetConfig(search = "") {
   const params = new URLSearchParams(search);
+  const requestedMode = params.get("mode") ?? DEFAULT_WIDGET_MODE;
+  const mode = WIDGET_MODES.has(requestedMode)
+    ? requestedMode
+    : DEFAULT_WIDGET_MODE;
+  const defaultCopy =
+    mode === "countdown" ? DEFAULT_COUNTDOWN_COPY : DEFAULT_COPY;
   const requestedTheme = params.get("theme") ?? DEFAULT_WIDGET_THEME;
   const theme = WIDGET_THEMES.has(requestedTheme)
     ? requestedTheme
@@ -176,20 +208,25 @@ export function parseWidgetConfig(search = "") {
     actionSize,
     actionText: boundedText(
       params.get("actionText"),
-      DEFAULT_COPY.actionText,
+      defaultCopy.actionText,
       60,
     ),
     apiBase: params.get("api")?.replace(/\/+$/, "") ?? "",
     baselineSize,
     baselineText: boundedText(
       params.get("baselineText"),
-      DEFAULT_COPY.baselineText,
+      defaultCopy.baselineText,
       50,
     ),
     channelId,
+    endLabel: boundedText(
+      params.get("endLabel"),
+      DEFAULT_COUNTDOWN_COPY.endLabel,
+      12,
+    ),
     eventLabel: boundedText(
       params.get("eventLabel"),
-      DEFAULT_COPY.eventLabel,
+      defaultCopy.eventLabel,
       20,
     ),
     eventLabelSize,
@@ -197,26 +234,104 @@ export function parseWidgetConfig(search = "") {
     followerCountSize,
     followerLabel: boundedText(
       params.get("followerLabel"),
-      DEFAULT_COPY.followerLabel,
+      defaultCopy.followerLabel,
       30,
     ),
     followerLabelSize,
     fontSize,
     initialFollowers,
     minutesPerFollower,
+    mode,
     previewEventDelta,
     previewFollowers,
     refreshSeconds,
     resultLabel: boundedText(
       params.get("resultLabel"),
-      DEFAULT_COPY.resultLabel,
+      defaultCopy.resultLabel,
       20,
     ),
+    sessionId: boundedText(params.get("session"), "default", 48).replace(
+      /[^\p{L}\p{N}._-]/gu,
+      "-",
+    ),
+    startAtMs: timestampMilliseconds(params.get("startAt")),
     theme,
     totalSize,
     widgetHeight,
     widgetWidth,
   };
+}
+
+export function calculateCountdownState({
+  followerCount,
+  initialFollowers = DEFAULT_INITIAL_FOLLOWERS,
+  minutesPerFollower = DEFAULT_MINUTES_PER_FOLLOWER,
+  nowMs,
+  startAtMs,
+}) {
+  const safeNowMs = Math.max(0, finiteNumber(nowMs, Date.now()));
+  const safeStartAtMs = Math.max(0, finiteNumber(startAtMs, safeNowMs));
+  const ringFit = calculateRingFit(
+    followerCount,
+    initialFollowers,
+    minutesPerFollower,
+  );
+  const accruedSeconds = Math.round(ringFit.minutes * 60);
+  const elapsedSeconds = Math.max(
+    0,
+    Math.floor((safeNowMs - safeStartAtMs) / 1000),
+  );
+  const remainingSeconds = Math.max(0, accruedSeconds - elapsedSeconds);
+
+  return {
+    accruedSeconds,
+    endAtMs: safeStartAtMs + accruedSeconds * 1000,
+    hasEnded: safeNowMs >= safeStartAtMs && remainingSeconds === 0,
+    hasStarted: safeNowMs >= safeStartAtMs,
+    remainingSeconds,
+  };
+}
+
+export function formatClockTime(
+  timestampMs,
+  {
+    referenceTimestampMs = timestampMs,
+    timeZone = "Asia/Seoul",
+  } = {},
+) {
+  const safeTimestamp = Math.max(0, finiteNumber(timestampMs, 0));
+  const safeReference = Math.max(
+    0,
+    finiteNumber(referenceTimestampMs, safeTimestamp),
+  );
+  const clockFormatter = new Intl.DateTimeFormat("ko-KR", {
+    hour: "2-digit",
+    hourCycle: "h23",
+    minute: "2-digit",
+    second: "2-digit",
+    timeZone,
+  });
+  const dateFormatter = new Intl.DateTimeFormat("ko-KR", {
+    day: "numeric",
+    month: "numeric",
+    timeZone,
+  });
+  const dateKeyFormatter = new Intl.DateTimeFormat("en-CA", {
+    day: "2-digit",
+    month: "2-digit",
+    timeZone,
+    year: "numeric",
+  });
+  const clock = clockFormatter.format(safeTimestamp);
+
+  if (
+    dateKeyFormatter.format(safeTimestamp) ===
+    dateKeyFormatter.format(safeReference)
+  ) {
+    return clock;
+  }
+
+  return `${dateFormatter.format(safeTimestamp).replace(/\s/g, "")} ${clock}`;
 }
 
 export function calculateRingFit(
