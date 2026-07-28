@@ -1,0 +1,159 @@
+/*
+ * Keep the accumulated duration at its normal width and place the temporary
+ * increment indicator only in the spare space on the action-copy row.
+ * This file is imported after widget.css so these rules intentionally override
+ * the original full-height event panel.
+ */
+
+.total-metric {
+  transition: none;
+}
+
+.ringfit-widget.has-increment .total-metric {
+  padding-right: 24px;
+}
+
+.ringfit-widget.has-increment .action-copy {
+  max-width: calc(100% - clamp(76px, calc(var(--main-font-size) * 2.05), 140px));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.increment-event {
+  top: 6px;
+  right: max(10px, 1.2%);
+  width: max-content;
+  max-width: clamp(72px, calc(var(--main-font-size) * 1.9), 132px);
+  height: auto;
+  min-height: 22px;
+  padding: 2px 8px 1px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  clip-path: polygon(
+    3px 0,
+    calc(100% - 4px) 1px,
+    100% 4px,
+    calc(100% - 1px) calc(100% - 4px),
+    calc(100% - 5px) 100%,
+    0 calc(100% - 1px)
+  );
+  box-shadow:
+    -2px 2px 0 rgb(91 42 18 / 24%),
+    -3px 4px 9px rgb(170 59 10 / 12%);
+  pointer-events: none;
+}
+
+.increment-event::after {
+  inset: -7px;
+  clip-path: polygon(0 36%, 100% 31%, 100% 70%, 0 65%);
+}
+
+.increment-event > span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  border: 0;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.increment-event > strong {
+  max-width: 100%;
+  margin-top: 0;
+  font-size: min(
+    var(--event-value-font-size),
+    calc(var(--main-font-size) * 0.38)
+  );
+  letter-spacing: -0.055em;
+  line-height: 0.92;
+  text-overflow: ellipsis;
+}
+
+@keyframes increment-pop {
+  0%,
+  2% {
+    opacity: 0;
+    transform: translateX(18px) rotate(3deg) scale(0.94);
+  }
+
+  4% {
+    opacity: 1;
+    transform: translateX(-2px) rotate(-1.8deg) scale(1.03);
+  }
+
+  7% {
+    opacity: 1;
+    transform: translateX(1px) rotate(0.7deg) scale(0.99);
+  }
+
+  11%,
+  84% {
+    opacity: 1;
+    transform: translateX(0) rotate(-0.7deg) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(14px) rotate(1.5deg) scale(0.96);
+  }
+}
+
+@keyframes increment-number-hit {
+  0%,
+  12% {
+    opacity: 0;
+    transform: scale(0.84) rotate(4deg);
+  }
+
+  42% {
+    opacity: 1;
+    transform: scale(1.08) rotate(-2deg);
+  }
+
+  68% {
+    transform: scale(0.98) rotate(0.8deg);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+@keyframes impact-scribble {
+  0% {
+    opacity: 0;
+    transform: scale(0.82) rotate(-2deg);
+  }
+
+  35% {
+    opacity: 0.45;
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.06) rotate(1deg);
+  }
+}
+
+@media (max-width: 640px) {
+  .ringfit-widget.has-increment .action-copy {
+    max-width: calc(100% - 72px);
+  }
+
+  .increment-event {
+    right: 7px;
+    max-width: 68px;
+    padding-inline: 6px;
+  }
+
+  .increment-event > strong {
+    font-size: min(var(--event-value-font-size), 16px);
+  }
+}
