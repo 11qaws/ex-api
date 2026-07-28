@@ -193,7 +193,7 @@ function showIncrementEvent(gainedFollowers) {
   incrementEventElement.classList.add("is-visible");
 
   clearTimeout(incrementEventTimer);
-  incrementEventTimer = window.setTimeout(hideIncrementEvent, 1_400);
+  incrementEventTimer = window.setTimeout(hideIncrementEvent, 2_200);
 }
 
 function renderError(error) {
