@@ -222,6 +222,97 @@ a {
   gap: 12px;
 }
 
+.theme-picker {
+  display: grid;
+  margin: 0 0 19px;
+  padding: 0;
+  border: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.theme-picker legend {
+  margin-bottom: 7px;
+  color: #2a5943;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.theme-option {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  padding: 8px 9px;
+  border: 1px solid rgb(22 76 51 / 22%);
+  border-radius: 5px;
+  background: #fffef8;
+  cursor: pointer;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+  transition:
+    border-color 150ms ease-out,
+    box-shadow 150ms ease-out,
+    transform 150ms ease-out;
+}
+
+.theme-option:has(input:checked) {
+  border-color: #319667;
+  box-shadow: 0 0 0 3px rgb(85 200 141 / 20%);
+  transform: rotate(-0.4deg);
+}
+
+.theme-option:has(input:focus-visible) {
+  outline: 2px solid var(--orange);
+  outline-offset: 2px;
+}
+
+.theme-option input {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  opacity: 0;
+}
+
+.theme-option > span:last-child {
+  display: grid;
+  min-width: 0;
+}
+
+.theme-option b {
+  color: var(--green-black);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.theme-option small {
+  color: #71887d;
+  font-family: system-ui, sans-serif;
+  font-size: 11px;
+}
+
+.theme-swatch {
+  display: block;
+  width: 44px;
+  height: 31px;
+  border-radius: 3px;
+}
+
+.theme-swatch-paper {
+  border: 1px solid #123928;
+  background:
+    linear-gradient(90deg, #58cf94 0 27%, transparent 27%),
+    #f1ead6;
+}
+
+.theme-swatch-glass {
+  border: 1px solid rgb(255 255 255 / 88%);
+  background:
+    linear-gradient(rgb(18 20 26 / 48%), rgb(18 20 26 / 48%)),
+    linear-gradient(120deg, #ee7c7c, #575db3 52%, #5fc490);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 12%);
+}
+
 .number-field > div {
   display: flex;
   height: 45px;
@@ -422,6 +513,19 @@ input[type="range"] {
     linear-gradient(45deg, transparent 75%, #163a2a 75%) 0 0 / 20px 20px,
     linear-gradient(-45deg, transparent 75%, #163a2a 75%) 0 0 / 20px 20px,
     #102f21;
+}
+
+.preview-viewport[data-theme="glass"] {
+  background:
+    radial-gradient(circle at 16% 30%, rgb(255 126 78 / 92%) 0 2px, transparent 3px),
+    radial-gradient(circle at 67% 72%, rgb(255 111 164 / 70%) 0 3px, transparent 4px),
+    radial-gradient(circle at 82% 20%, rgb(99 208 160 / 80%) 0 2px, transparent 3px),
+    linear-gradient(118deg, #161a27, #503048 48%, #183a38);
+  background-size:
+    29px 29px,
+    37px 37px,
+    43px 43px,
+    auto;
 }
 
 .preview-canvas {

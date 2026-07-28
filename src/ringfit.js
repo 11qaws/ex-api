@@ -24,6 +24,7 @@ const FONT_RATIOS = Object.freeze({
 });
 
 const CHANNEL_ID_PATTERN = /^[a-f0-9]{32}$/i;
+const WIDGET_THEMES = new Set(["glass", "paper"]);
 
 function finiteNumber(value, fallback) {
   if (value === null || value === undefined || value === "") {
@@ -63,6 +64,10 @@ export function isValidChannelId(value) {
 
 export function parseWidgetConfig(search = "") {
   const params = new URLSearchParams(search);
+  const requestedTheme = params.get("theme") ?? "paper";
+  const theme = WIDGET_THEMES.has(requestedTheme)
+    ? requestedTheme
+    : "paper";
   const requestedChannelId = params.get("channelId") ?? DEFAULT_CHANNEL_ID;
   const channelId = isValidChannelId(requestedChannelId)
     ? requestedChannelId
@@ -206,6 +211,7 @@ export function parseWidgetConfig(search = "") {
       DEFAULT_COPY.resultLabel,
       20,
     ),
+    theme,
     totalSize,
     widgetHeight,
     widgetWidth,

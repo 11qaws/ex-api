@@ -17,6 +17,7 @@ const openLink = document.querySelector("[data-open-link]");
 const copyStatus = document.querySelector("[data-copy-status]");
 const replayButton = document.querySelector("[data-replay]");
 const copyButton = document.querySelector("[data-copy-link]");
+const themeStamp = document.querySelector("[data-theme-stamp]");
 const widgetBaseUrl = new URL("../", window.location.href);
 
 const textParameters = [
@@ -61,6 +62,7 @@ function normalizedConfig() {
   }
 
   for (const name of [
+    "theme",
     "channelId",
     "initial",
     "minutesPerFollower",
@@ -85,6 +87,7 @@ function buildWidgetUrl(config, { preview = false } = {}) {
   params.set("width", String(config.widgetWidth));
   params.set("height", String(config.widgetHeight));
   params.set("fontSize", String(config.fontSize));
+  params.set("theme", config.theme);
 
   for (const name of textParameters) {
     params.set(name, config[name]);
@@ -125,6 +128,9 @@ function render({ reloadPreview = true } = {}) {
   widgetLink.value = liveUrl;
   openLink.href = liveUrl;
   previewSize.textContent = `${config.widgetWidth} × ${config.widgetHeight}`;
+  previewViewport.dataset.theme = config.theme;
+  themeStamp.textContent =
+    config.theme === "glass" ? "유리 테마 · 뒤가 비침" : "종이 테마";
   updatePreviewScale(config);
 
   if (reloadPreview) {

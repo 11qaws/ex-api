@@ -1,5 +1,6 @@
 import "./widget.css";
 import "./increment-event-compact.css";
+import "./glass-theme.css";
 import { fetchFollowerCount } from "./api.js";
 import {
   calculateIncrementSeconds,
@@ -39,6 +40,7 @@ let hasPlayedPreviewAnimation = false;
 let previousFollowerCount = null;
 let previousTotalSeconds = null;
 
+widget.dataset.theme = config.theme;
 document.documentElement.style.setProperty(
   "--widget-width",
   `${config.widgetWidth}px`,

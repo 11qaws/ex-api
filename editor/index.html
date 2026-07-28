@@ -88,10 +88,24 @@
           <div class="section-heading">
             <span class="step-number">02</span>
             <div>
-              <h2 id="size-heading">폼 크기 잡기</h2>
-              <p>OBS 브라우저 소스 크기와 같은 값으로 맞추면 됩니다.</p>
+              <h2 id="size-heading">테마랑 폼 크기</h2>
+              <p>먼저 생김새를 고르고 OBS 브라우저 소스 크기를 맞추세요.</p>
             </div>
           </div>
+
+          <fieldset class="theme-picker">
+            <legend>위젯 테마</legend>
+            <label class="theme-option">
+              <input type="radio" name="theme" value="paper" checked />
+              <span class="theme-swatch theme-swatch-paper" aria-hidden="true"></span>
+              <span><b>종이</b><small>유레카 기본색</small></span>
+            </label>
+            <label class="theme-option">
+              <input type="radio" name="theme" value="glass" />
+              <span class="theme-swatch theme-swatch-glass" aria-hidden="true"></span>
+              <span><b>유리</b><small>방송 화면 비침</small></span>
+            </label>
+          </fieldset>
 
           <div class="size-grid">
             <label class="number-field">
@@ -173,7 +187,7 @@
             <p class="kicker">LIVE PREVIEW</p>
             <h2>지금 이렇게 나감</h2>
           </div>
-          <span class="theme-stamp">유레카색 고정</span>
+          <span class="theme-stamp" data-theme-stamp>종이 테마</span>
         </div>
 
         <div class="preview-shell">
