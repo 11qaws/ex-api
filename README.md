@@ -58,7 +58,7 @@ http://localhost:5173/ex-api/editor/
 | `width` | `650` | 위젯 가로 크기(px, 480~3840) |
 | `height` | `100` | 위젯 세로 크기(px, 64~1080) |
 | `fontSize` | `48` | 중앙 결과 문장의 기준 글자 크기(px, 24~120) |
-| `theme` | `paper` | 위젯 테마 (`paper` 또는 `glass`) |
+| `theme` | `glass` | 위젯 테마 (`glass` 또는 `paper`) |
 | `followerLabel` | `지금 팔로워` | 왼쪽 상단 문구 |
 | `baselineText` | `기준 {initial}명부터` | 왼쪽 하단 문구 (`{initial}` 치환) |
 | `actionText` | `팔로우 눌러서 일요일 링피트` | 중앙 행동 문구 |

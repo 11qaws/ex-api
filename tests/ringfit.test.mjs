@@ -66,12 +66,13 @@ test("옵션이 없는 URL은 내기 기본값 1031명과 0.5분을 쓴다", () 
   assert.equal(config.totalSize, 48);
   assert.equal(config.eventLabelSize, 20);
   assert.equal(config.eventValueSize, 38);
-  assert.equal(config.theme, "paper");
+  assert.equal(config.theme, "glass");
 });
 
-test("유리 테마만 URL 옵션으로 허용한다", () => {
+test("유리 테마를 기본값으로 사용하고 종이 테마도 URL 옵션으로 허용한다", () => {
   assert.equal(parseWidgetConfig("?theme=glass").theme, "glass");
-  assert.equal(parseWidgetConfig("?theme=unknown").theme, "paper");
+  assert.equal(parseWidgetConfig("?theme=paper").theme, "paper");
+  assert.equal(parseWidgetConfig("?theme=unknown").theme, "glass");
 });
 
 test("초 단위 결과를 자연스러운 시간·분·초 문장으로 바꾼다", () => {

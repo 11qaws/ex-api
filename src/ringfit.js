@@ -5,6 +5,7 @@ export const DEFAULT_REFRESH_SECONDS = 30;
 export const DEFAULT_WIDGET_WIDTH = 650;
 export const DEFAULT_WIDGET_HEIGHT = 100;
 export const DEFAULT_FONT_SIZE = 48;
+export const DEFAULT_WIDGET_THEME = "glass";
 export const DEFAULT_COPY = Object.freeze({
   actionText: "팔로우 눌러서 일요일 링피트",
   baselineText: "기준 {initial}명부터",
@@ -64,10 +65,10 @@ export function isValidChannelId(value) {
 
 export function parseWidgetConfig(search = "") {
   const params = new URLSearchParams(search);
-  const requestedTheme = params.get("theme") ?? "paper";
+  const requestedTheme = params.get("theme") ?? DEFAULT_WIDGET_THEME;
   const theme = WIDGET_THEMES.has(requestedTheme)
     ? requestedTheme
-    : "paper";
+    : DEFAULT_WIDGET_THEME;
   const requestedChannelId = params.get("channelId") ?? DEFAULT_CHANNEL_ID;
   const channelId = isValidChannelId(requestedChannelId)
     ? requestedChannelId
