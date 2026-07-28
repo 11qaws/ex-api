@@ -259,16 +259,29 @@ export function formatMinutes(minutes) {
 
 export function formatDurationSeconds(seconds) {
   const safeSeconds = Math.max(0, Math.round(finiteNumber(seconds, 0)));
-  const minutes = Math.floor(safeSeconds / 60);
+  const hours = Math.floor(safeSeconds / 3600);
+  const minutes = Math.floor((safeSeconds % 3600) / 60);
   const remainingSeconds = safeSeconds % 60;
 
-  if (minutes === 0) {
-    return `${remainingSeconds}초`;
+  if (hours === 0) {
+    if (minutes === 0) {
+      return `${remainingSeconds}초`;
+    }
+
+    if (remainingSeconds === 0) {
+      return `${minutes}분`;
+    }
+
+    return `${minutes}분 ${remainingSeconds}초`;
   }
 
-  if (remainingSeconds === 0) {
-    return `${minutes}분`;
+  const parts = [`${hours}시간`];
+  if (minutes > 0) {
+    parts.push(`${minutes}분`);
+  }
+  if (remainingSeconds > 0) {
+    parts.push(`${remainingSeconds}초`);
   }
 
-  return `${minutes}분 ${remainingSeconds}초`;
+  return parts.join(" ");
 }
