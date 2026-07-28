@@ -28,7 +28,7 @@
   --follower-divider-width: 2px;
   --event-top: 7%;
   --event-height: 86%;
-  --follower-width: clamp(220px, calc(var(--main-font-size) * 4.67), 420px);
+  --follower-width: clamp(170px, calc(var(--main-font-size) * 3.63), 370px);
   --event-width: clamp(190px, calc(var(--main-font-size) * 4.04), 380px);
 }
 
@@ -235,11 +235,15 @@ body {
   margin-left: 0.12em;
 }
 
+.total-duration > .duration-unit + mark {
+  margin-left: 0.12em;
+}
+
 .total-duration mark {
   position: relative;
   isolation: isolate;
   display: inline-block;
-  padding: 0 12px 3px 9px;
+  padding: 0;
   background: transparent;
   color: var(--orange-dark);
   font: inherit;
@@ -252,7 +256,7 @@ body {
 .total-duration mark::before {
   position: absolute;
   z-index: -1;
-  inset: 7% 0 2%;
+  inset: 7% -12px 2% -9px;
   background:
     linear-gradient(
       178deg,
@@ -262,6 +266,11 @@ body {
     );
   content: "";
   transform-origin: left center;
+}
+
+.total-duration mark > span {
+  position: relative;
+  z-index: 1;
 }
 
 .ringfit-widget.is-gain-update .total-duration mark::before {
@@ -519,7 +528,7 @@ body {
 
 @media (max-width: 640px) {
   .ringfit-widget {
-    grid-template-columns: 210px minmax(0, 1fr);
+    grid-template-columns: 160px minmax(0, 1fr);
   }
 
   .follower-metric {

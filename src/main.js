@@ -103,6 +103,9 @@ function renderTotalDuration(totalSeconds) {
     getChangedDurationUnits(previousTotalSeconds, totalSeconds),
   );
   const fragment = document.createDocumentFragment();
+  const hasActiveChangeGroup = totalDurationElement.querySelector(
+    "mark.duration-change",
+  );
 
   for (let index = 0; index < parts.length; index += 1) {
     const part = parts[index];
@@ -123,6 +126,11 @@ function renderTotalDuration(totalSeconds) {
       changeGroup.append(createDurationUnit(parts[index]));
     }
     fragment.append(changeGroup);
+  }
+
+  if (changedUnits.size === 0 && hasActiveChangeGroup) {
+    previousTotalSeconds = totalSeconds;
+    return;
   }
 
   totalDurationElement.replaceChildren(fragment);
