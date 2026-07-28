@@ -66,11 +66,17 @@ test("옵션이 없는 URL은 내기 기본값 1031명과 0.5분을 쓴다", () 
   assert.equal(config.eventValueSize, 38);
 });
 
-test("초 단위 결과를 자연스러운 분·초 문장으로 바꾼다", () => {
+test("초 단위 결과를 자연스러운 시간·분·초 문장으로 바꾼다", () => {
   assert.equal(formatDurationSeconds(30), "30초");
   assert.equal(formatDurationSeconds(60), "1분");
   assert.equal(formatDurationSeconds(90), "1분 30초");
-  assert.equal(formatDurationSeconds(120), "2분");
+  assert.equal(formatDurationSeconds(3599), "59분 59초");
+  assert.equal(formatDurationSeconds(3600), "1시간");
+  assert.equal(formatDurationSeconds(3630), "1시간 30초");
+  assert.equal(formatDurationSeconds(3660), "1시간 1분");
+  assert.equal(formatDurationSeconds(3690), "1시간 1분 30초");
+  assert.equal(formatDurationSeconds(7200), "2시간");
+  assert.equal(formatDurationSeconds(7290), "2시간 1분 30초");
 });
 
 test("새 팔로워 인원을 30초 단위 이벤트로 계산한다", () => {
