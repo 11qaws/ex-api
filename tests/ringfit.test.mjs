@@ -5,7 +5,9 @@ import {
   calculateIncrementSeconds,
   calculateRingFit,
   formatDurationSeconds,
+  formatDurationParts,
   formatMinutes,
+  getChangedDurationUnits,
   parseWidgetConfig,
 } from "../src/ringfit.js";
 
@@ -49,14 +51,14 @@ test("옵션이 없는 URL은 내기 기본값 1031명과 0.5분을 쓴다", () 
   assert.equal(config.refreshSeconds, 30);
   assert.equal(config.previewFollowers, 1033);
   assert.equal(config.previewEventDelta, 0);
-  assert.equal(config.widgetWidth, 800);
+  assert.equal(config.widgetWidth, 650);
   assert.equal(config.widgetHeight, 100);
   assert.equal(config.fontSize, 48);
   assert.equal(config.followerLabel, "지금 팔로워");
   assert.equal(config.baselineText, "기준 {initial}명부터");
   assert.equal(config.actionText, "팔로우 눌러서 일요일 링피트");
   assert.equal(config.resultLabel, "적립");
-  assert.equal(config.eventLabel, "방금 적립");
+  assert.equal(config.eventLabel, "방금 추가");
   assert.equal(config.followerLabelSize, 16);
   assert.equal(config.followerCountSize, 52);
   assert.equal(config.baselineSize, 13);
@@ -77,6 +79,38 @@ test("초 단위 결과를 자연스러운 시간·분·초 문장으로 바꾼�
   assert.equal(formatDurationSeconds(3690), "1시간 1분 30초");
   assert.equal(formatDurationSeconds(7200), "2시간");
   assert.equal(formatDurationSeconds(7290), "2시간 1분 30초");
+});
+
+test("누적 시간을 비교 가능한 시간·분·초 조각으로 나눈다", () => {
+  assert.deepEqual(formatDurationParts(3690), [
+    { label: "1시간", unit: "hours", value: 1 },
+    { label: "1분", unit: "minutes", value: 1 },
+    { label: "30초", unit: "seconds", value: 30 },
+  ]);
+});
+
+test("시간은 따로 비교하고 분·초는 하나의 변경 묶음으로 고른다", () => {
+  assert.deepEqual(getChangedDurationUnits(null, 3690), []);
+  assert.deepEqual(getChangedDurationUnits(3600, 3690), [
+    "minutes",
+    "seconds",
+  ]);
+  assert.deepEqual(getChangedDurationUnits(3660, 3690), [
+    "minutes",
+    "seconds",
+  ]);
+  assert.deepEqual(getChangedDurationUnits(7170, 7200), ["hours"]);
+  assert.deepEqual(getChangedDurationUnits(7170, 7290), [
+    "hours",
+    "minutes",
+    "seconds",
+  ]);
+  assert.deepEqual(getChangedDurationUnits(3690, 7290), [
+    "hours",
+    "minutes",
+    "seconds",
+  ]);
+  assert.deepEqual(getChangedDurationUnits(3690, 3690), []);
 });
 
 test("새 팔로워 인원을 30초 단위 이벤트로 계산한다", () => {

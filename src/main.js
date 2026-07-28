@@ -1,9 +1,12 @@
 import "./widget.css";
+import "./increment-event-compact.css";
 import { fetchFollowerCount } from "./api.js";
 import {
   calculateIncrementSeconds,
   calculateRingFit,
+  formatDurationParts,
   formatDurationSeconds,
+  getChangedDurationUnits,
   parseWidgetConfig,
 } from "./ringfit.js";
 
@@ -29,9 +32,12 @@ const numberFormatter = new Intl.NumberFormat("ko-KR");
 let refreshTimer;
 let incrementEventTimer;
 let gainAnimationTimer;
+let previewAnimationTimer;
 let activeRequest;
 let hasRenderedData = false;
+let hasPlayedPreviewAnimation = false;
 let previousFollowerCount = null;
+let previousTotalSeconds = null;
 
 document.documentElement.style.setProperty(
   "--widget-width",
@@ -75,13 +81,52 @@ function renderFollowerCount(followerCount) {
 
   previousFollowerCountElement.textContent = followerCountElement.textContent;
   followerCountElement.textContent = numberFormatter.format(result.followerCount);
-  const totalDuration = formatDurationSeconds(result.minutes * 60);
-  totalDurationElement.textContent = totalDuration;
+  renderTotalDuration(result.minutes * 60);
   widget.dataset.state = "ready";
   widget.removeAttribute("title");
   hasRenderedData = true;
 
   return result;
+}
+
+function createDurationUnit(part) {
+  const unitElement = document.createElement("span");
+  unitElement.className = "duration-unit";
+  unitElement.dataset.unit = part.unit;
+  unitElement.textContent = part.label;
+  return unitElement;
+}
+
+function renderTotalDuration(totalSeconds) {
+  const parts = formatDurationParts(totalSeconds);
+  const changedUnits = new Set(
+    getChangedDurationUnits(previousTotalSeconds, totalSeconds),
+  );
+  const fragment = document.createDocumentFragment();
+
+  for (let index = 0; index < parts.length; index += 1) {
+    const part = parts[index];
+    if (!changedUnits.has(part.unit)) {
+      fragment.append(createDurationUnit(part));
+      continue;
+    }
+
+    const changeGroup = document.createElement("mark");
+    changeGroup.className = "duration-change";
+    changeGroup.append(createDurationUnit(part));
+
+    while (
+      index + 1 < parts.length &&
+      changedUnits.has(parts[index + 1].unit)
+    ) {
+      index += 1;
+      changeGroup.append(createDurationUnit(parts[index]));
+    }
+    fragment.append(changeGroup);
+  }
+
+  totalDurationElement.replaceChildren(fragment);
+  previousTotalSeconds = totalSeconds;
 }
 
 function hideIncrementEvent() {
@@ -90,6 +135,24 @@ function hideIncrementEvent() {
   incrementEventElement.classList.remove("is-visible");
   incrementEventElement.hidden = true;
   widget.classList.remove("has-increment", "is-gain-update");
+}
+
+function playPreviewAnimation() {
+  const previousPreviewFollowers = Math.max(
+    config.initialFollowers,
+    config.previewFollowers - config.previewEventDelta,
+  );
+
+  hideIncrementEvent();
+  renderFollowerCount(previousPreviewFollowers);
+  previousFollowerCount = previousPreviewFollowers;
+
+  clearTimeout(previewAnimationTimer);
+  previewAnimationTimer = window.setTimeout(() => {
+    renderFollowerCount(config.previewFollowers);
+    showIncrementEvent(config.previewEventDelta);
+    previousFollowerCount = config.previewFollowers;
+  }, 650);
 }
 
 function showIncrementEvent(gainedFollowers) {
@@ -142,9 +205,11 @@ async function refresh() {
 
   try {
     if (config.previewFollowers !== null) {
-      renderFollowerCount(config.previewFollowers);
-      if (config.previewEventDelta > 0) {
-        showIncrementEvent(config.previewEventDelta);
+      if (config.previewEventDelta > 0 && !hasPlayedPreviewAnimation) {
+        hasPlayedPreviewAnimation = true;
+        playPreviewAnimation();
+      } else {
+        renderFollowerCount(config.previewFollowers);
       }
       return;
     }

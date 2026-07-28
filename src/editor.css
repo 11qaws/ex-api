@@ -425,7 +425,7 @@ input[type="range"] {
 }
 
 .preview-canvas {
-  --preview-width: 800px;
+  --preview-width: 650px;
   --preview-height: 100px;
   --preview-scale: 1;
   position: absolute;

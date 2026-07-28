@@ -11,7 +11,7 @@
   --ink-soft: hsl(152 18% 31%);
   --orange: hsl(24 96% 57%);
   --orange-dark: hsl(20 77% 29%);
-  --widget-width: 800px;
+  --widget-width: 650px;
   --widget-height: 100px;
   --main-font-size: 48px;
   --follower-label-font-size: 16px;
@@ -217,23 +217,39 @@ body {
   white-space: nowrap;
 }
 
-.total-copy mark {
+.total-duration {
+  font-size: 1.14em;
+}
+
+.total-duration > .duration-unit,
+.total-duration > mark {
+  margin-left: 0.08em;
+}
+
+.duration-unit {
+  display: inline-block;
+  transform-origin: 45% 70%;
+}
+
+.duration-unit + .duration-unit {
+  margin-left: 0.12em;
+}
+
+.total-duration mark {
   position: relative;
   isolation: isolate;
   display: inline-block;
-  margin-left: 0.08em;
   padding: 0 12px 3px 9px;
   background: transparent;
   color: var(--orange-dark);
   font: inherit;
-  font-size: 1.14em;
   box-decoration-break: clone;
   text-shadow:
     2px 2px 0 rgb(128 42 5 / 20%),
     -1px -1px 0 rgb(255 211 174 / 55%);
 }
 
-.total-copy mark::before {
+.total-duration mark::before {
   position: absolute;
   z-index: -1;
   inset: 7% 0 2%;
@@ -248,17 +264,12 @@ body {
   transform-origin: left center;
 }
 
-.total-copy mark > span {
-  display: inline-block;
-  transform-origin: 45% 70%;
-}
-
-.ringfit-widget.is-gain-update .total-copy mark::before {
+.ringfit-widget.is-gain-update .total-duration mark::before {
   animation: highlighter-repaint 700ms 350ms cubic-bezier(0.18, 0.8, 0.25, 1)
     both;
 }
 
-.ringfit-widget.is-gain-update .total-copy mark > span {
+.ringfit-widget.is-gain-update .total-duration mark > span {
   animation: total-number-land 560ms 430ms cubic-bezier(0.18, 0.9, 0.3, 1.35)
     both;
 }
@@ -531,8 +542,8 @@ body {
   .increment-event.is-visible > strong,
   .ringfit-widget.is-gain-update .follower-count-current,
   .ringfit-widget.is-gain-update .follower-count-previous,
-  .ringfit-widget.is-gain-update .total-copy mark::before,
-  .ringfit-widget.is-gain-update .total-copy mark > span {
+  .ringfit-widget.is-gain-update .total-duration mark::before,
+  .ringfit-widget.is-gain-update .total-duration mark > span {
     animation: none;
   }
 

@@ -2,13 +2,13 @@ export const DEFAULT_CHANNEL_ID = "3d5546fc8d0dcb478c973a9bc1328980";
 export const DEFAULT_INITIAL_FOLLOWERS = 1031;
 export const DEFAULT_MINUTES_PER_FOLLOWER = 0.5;
 export const DEFAULT_REFRESH_SECONDS = 30;
-export const DEFAULT_WIDGET_WIDTH = 800;
+export const DEFAULT_WIDGET_WIDTH = 650;
 export const DEFAULT_WIDGET_HEIGHT = 100;
 export const DEFAULT_FONT_SIZE = 48;
 export const DEFAULT_COPY = Object.freeze({
   actionText: "팔로우 눌러서 일요일 링피트",
   baselineText: "기준 {initial}명부터",
-  eventLabel: "방금 적립",
+  eventLabel: "방금 추가",
   followerLabel: "지금 팔로워",
   resultLabel: "적립",
 });
@@ -257,31 +257,65 @@ export function formatMinutes(minutes) {
   });
 }
 
-export function formatDurationSeconds(seconds) {
+export function formatDurationParts(seconds) {
   const safeSeconds = Math.max(0, Math.round(finiteNumber(seconds, 0)));
   const hours = Math.floor(safeSeconds / 3600);
   const minutes = Math.floor((safeSeconds % 3600) / 60);
   const remainingSeconds = safeSeconds % 60;
+  const parts = [];
 
-  if (hours === 0) {
-    if (minutes === 0) {
-      return `${remainingSeconds}초`;
-    }
-
-    if (remainingSeconds === 0) {
-      return `${minutes}분`;
-    }
-
-    return `${minutes}분 ${remainingSeconds}초`;
+  if (hours > 0) {
+    parts.push({ label: `${hours}시간`, unit: "hours", value: hours });
   }
-
-  const parts = [`${hours}시간`];
   if (minutes > 0) {
-    parts.push(`${minutes}분`);
+    parts.push({ label: `${minutes}분`, unit: "minutes", value: minutes });
   }
-  if (remainingSeconds > 0) {
-    parts.push(`${remainingSeconds}초`);
+  if (remainingSeconds > 0 || parts.length === 0) {
+    parts.push({
+      label: `${remainingSeconds}초`,
+      unit: "seconds",
+      value: remainingSeconds,
+    });
   }
 
-  return parts.join(" ");
+  return parts;
+}
+
+export function getChangedDurationUnits(previousSeconds, currentSeconds) {
+  const currentParts = formatDurationParts(currentSeconds);
+  if (previousSeconds === null || previousSeconds === undefined) {
+    return [];
+  }
+
+  const valuesByUnit = (seconds) => ({
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+    ...Object.fromEntries(
+      formatDurationParts(seconds).map((part) => [part.unit, part.value]),
+    ),
+  });
+  const previousValues = valuesByUnit(previousSeconds);
+  const currentValues = valuesByUnit(currentSeconds);
+
+  if (previousValues.hours !== currentValues.hours) {
+    return currentParts.map((part) => part.unit);
+  }
+
+  const subHourChanged =
+    previousValues.minutes !== currentValues.minutes ||
+    previousValues.seconds !== currentValues.seconds;
+  if (!subHourChanged) {
+    return [];
+  }
+
+  return currentParts
+    .filter((part) => part.unit === "minutes" || part.unit === "seconds")
+    .map((part) => part.unit);
+}
+
+export function formatDurationSeconds(seconds) {
+  return formatDurationParts(seconds)
+    .map((part) => part.label)
+    .join(" ");
 }
