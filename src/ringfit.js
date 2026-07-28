@@ -290,35 +290,11 @@ export function formatDurationParts(seconds) {
 
 export function getChangedDurationUnits(previousSeconds, currentSeconds) {
   const currentParts = formatDurationParts(currentSeconds);
-  if (previousSeconds === null || previousSeconds === undefined) {
-    return currentParts.map((part) => part.unit);
-  }
-
-  const valuesByUnit = (seconds) => ({
-    hours: 0,
-    minutes: 0,
-    seconds: 0,
-    ...Object.fromEntries(
-      formatDurationParts(seconds).map((part) => [part.unit, part.value]),
-    ),
-  });
-  const previousValues = valuesByUnit(previousSeconds);
-  const currentValues = valuesByUnit(currentSeconds);
-
-  if (previousValues.hours !== currentValues.hours) {
-    return currentParts.map((part) => part.unit);
-  }
-
-  const subHourChanged =
-    previousValues.minutes !== currentValues.minutes ||
-    previousValues.seconds !== currentValues.seconds;
-  if (!subHourChanged) {
+  if (previousSeconds === currentSeconds) {
     return [];
   }
 
-  return currentParts
-    .filter((part) => part.unit === "minutes" || part.unit === "seconds")
-    .map((part) => part.unit);
+  return currentParts.map((part) => part.unit);
 }
 
 export function formatDurationSeconds(seconds) {

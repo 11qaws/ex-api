@@ -96,17 +96,19 @@ test("누적 시간을 비교 가능한 시간·분·초 조각으로 나눈다"
   ]);
 });
 
-test("첫 렌더는 전체를 강조하고 이후 시간은 따로, 분·초는 묶어서 고른다", () => {
+test("적립시간이 바뀌면 현재 시·분·초 전체를 한 묶음으로 강조한다", () => {
   assert.deepEqual(getChangedDurationUnits(null, 3690), [
     "hours",
     "minutes",
     "seconds",
   ]);
   assert.deepEqual(getChangedDurationUnits(3600, 3690), [
+    "hours",
     "minutes",
     "seconds",
   ]);
   assert.deepEqual(getChangedDurationUnits(3660, 3690), [
+    "hours",
     "minutes",
     "seconds",
   ]);
