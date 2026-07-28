@@ -24,7 +24,7 @@
 .ringfit-widget[data-theme="glass"] .eyebrow,
 .ringfit-widget[data-theme="glass"] .baseline,
 .ringfit-widget[data-theme="glass"] .action-copy {
-  color: rgb(255 255 255 / 76%);
+  color: rgb(255 255 255);
   text-shadow: 0 1px 5px rgb(0 0 0 / 62%);
 }
 

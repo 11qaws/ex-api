@@ -75,6 +75,7 @@ baselineElement.textContent = config.baselineText.replaceAll(
 );
 
 function renderFollowerCount(followerCount) {
+  const isInitialRender = !hasRenderedData;
   const result = calculateRingFit(
     followerCount,
     config.initialFollowers,
@@ -87,6 +88,9 @@ function renderFollowerCount(followerCount) {
   widget.dataset.state = "ready";
   widget.removeAttribute("title");
   hasRenderedData = true;
+  if (isInitialRender) {
+    playGainAnimation();
+  }
 
   return result;
 }
@@ -165,6 +169,17 @@ function playPreviewAnimation() {
   }, 650);
 }
 
+function playGainAnimation() {
+  clearTimeout(gainAnimationTimer);
+  widget.classList.remove("is-gain-update");
+  void widget.offsetWidth;
+  widget.classList.add("is-gain-update");
+
+  gainAnimationTimer = window.setTimeout(() => {
+    widget.classList.remove("is-gain-update");
+  }, 1_150);
+}
+
 function showIncrementEvent(gainedFollowers) {
   const gainedSeconds = calculateIncrementSeconds(
     gainedFollowers,
@@ -178,15 +193,8 @@ function showIncrementEvent(gainedFollowers) {
   incrementEventElement.hidden = false;
   widget.classList.add("has-increment");
   incrementEventElement.classList.remove("is-visible");
-  widget.classList.remove("is-gain-update");
-  void widget.offsetWidth;
-  widget.classList.add("is-gain-update");
+  playGainAnimation();
   incrementEventElement.classList.add("is-visible");
-
-  clearTimeout(gainAnimationTimer);
-  gainAnimationTimer = window.setTimeout(() => {
-    widget.classList.remove("is-gain-update");
-  }, 1_150);
 
   clearTimeout(incrementEventTimer);
   incrementEventTimer = window.setTimeout(hideIncrementEvent, 6_000);

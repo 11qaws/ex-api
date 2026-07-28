@@ -291,7 +291,7 @@ export function formatDurationParts(seconds) {
 export function getChangedDurationUnits(previousSeconds, currentSeconds) {
   const currentParts = formatDurationParts(currentSeconds);
   if (previousSeconds === null || previousSeconds === undefined) {
-    return [];
+    return currentParts.map((part) => part.unit);
   }
 
   const valuesByUnit = (seconds) => ({
