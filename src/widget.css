@@ -274,12 +274,12 @@ body {
 }
 
 .ringfit-widget.is-gain-update .total-duration mark::before {
-  animation: highlighter-repaint 700ms 350ms cubic-bezier(0.18, 0.8, 0.25, 1)
+  animation: highlighter-repaint 520ms 230ms cubic-bezier(0.18, 0.8, 0.25, 1)
     both;
 }
 
 .ringfit-widget.is-gain-update .total-duration mark > span {
-  animation: total-number-land 560ms 430ms cubic-bezier(0.18, 0.9, 0.3, 1.35)
+  animation: total-number-land 430ms 280ms cubic-bezier(0.18, 0.9, 0.3, 1.35)
     both;
 }
 
@@ -490,10 +490,12 @@ body {
 @keyframes total-number-land {
   0%,
   20% {
+    opacity: 0;
     transform: translateY(24%) rotate(4deg) scale(0.82);
   }
 
   66% {
+    opacity: 1;
     transform: translateY(-3%) rotate(-2deg) scale(1.12);
   }
 

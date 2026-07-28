@@ -173,7 +173,7 @@ function playGainAnimation() {
 
   gainAnimationTimer = window.setTimeout(() => {
     widget.classList.remove("is-gain-update");
-  }, 1_150);
+  }, 820);
 }
 
 function showIncrementEvent(gainedFollowers) {
@@ -193,7 +193,7 @@ function showIncrementEvent(gainedFollowers) {
   incrementEventElement.classList.add("is-visible");
 
   clearTimeout(incrementEventTimer);
-  incrementEventTimer = window.setTimeout(hideIncrementEvent, 6_000);
+  incrementEventTimer = window.setTimeout(hideIncrementEvent, 1_400);
 }
 
 function renderError(error) {

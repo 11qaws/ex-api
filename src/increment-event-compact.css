@@ -1,65 +1,79 @@
 /*
- * Keep the accumulated duration at its normal width and place the temporary
- * increment indicator only in the spare space on the action-copy row.
- * This file is imported after widget.css so these rules intentionally override
- * the original full-height event panel.
+ * Motion principle: cause → result in two quick opposing strokes.
+ * The contribution card sweeps in from the right without reserving layout
+ * space. The accrued-time marker then draws from left to right.
  */
 
-.total-metric {
+.total-metric,
+.ringfit-widget.has-increment .total-metric {
+  padding-right: 24px;
   transition: none;
 }
 
-.ringfit-widget.has-increment .total-metric {
-  padding-right: 24px;
-}
-
 .ringfit-widget.has-increment .action-copy {
-  max-width: calc(100% - clamp(76px, calc(var(--main-font-size) * 2.05), 140px));
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  max-width: none;
+  overflow: visible;
+  text-overflow: clip;
 }
 
 .increment-event {
-  top: 6px;
-  right: max(10px, 1.2%);
-  width: max-content;
-  max-width: clamp(72px, calc(var(--main-font-size) * 1.9), 132px);
-  height: auto;
-  min-height: 22px;
-  padding: 2px 8px 1px;
-  flex-direction: row;
-  align-items: center;
+  top: 50%;
+  right: max(8px, 1.1%);
+  width: clamp(106px, calc(var(--main-font-size) * 2.35), 132px);
+  max-width: calc(100% - var(--follower-width) - 14px);
+  height: clamp(54px, 68%, 66px);
+  min-height: 0;
+  padding: 7px 12px 6px 15px;
+  flex-direction: column;
+  align-items: flex-start;
   justify-content: center;
   clip-path: polygon(
-    3px 0,
-    calc(100% - 4px) 1px,
-    100% 4px,
-    calc(100% - 1px) calc(100% - 4px),
-    calc(100% - 5px) 100%,
-    0 calc(100% - 1px)
+    7px 0,
+    calc(100% - 9px) 2px,
+    100% 10px,
+    calc(100% - 2px) calc(100% - 7px),
+    calc(100% - 11px) 100%,
+    0 calc(100% - 3px)
   );
   box-shadow:
-    -2px 2px 0 rgb(91 42 18 / 24%),
-    -3px 4px 9px rgb(170 59 10 / 12%);
+    -5px 5px 0 rgb(91 42 18 / 24%),
+    -9px 9px 18px rgb(170 59 10 / 13%);
   pointer-events: none;
 }
 
 .increment-event::after {
-  inset: -7px;
-  clip-path: polygon(0 36%, 100% 31%, 100% 70%, 0 65%);
+  top: 50%;
+  right: calc(100% - 8px);
+  bottom: auto;
+  left: auto;
+  width: clamp(64px, calc(var(--main-font-size) * 1.9), 108px);
+  height: 15px;
+  background: linear-gradient(
+    90deg,
+    transparent 0 7%,
+    rgb(245 102 35 / 16%) 18%,
+    rgb(245 102 35 / 76%) 82%,
+    rgb(245 102 35 / 96%) 100%
+  );
+  clip-path: polygon(0 43%, 100% 17%, 100% 75%, 8% 60%);
+  transform-origin: right center;
 }
 
 .increment-event > span {
-  position: absolute;
-  width: 1px;
-  height: 1px;
+  position: static;
+  width: auto;
+  height: auto;
   padding: 0;
-  margin: -1px;
-  overflow: hidden;
+  margin: 0 0 1px;
+  overflow: visible;
   border: 0;
-  clip: rect(0 0 0 0);
-  clip-path: inset(50%);
+  clip: auto;
+  clip-path: none;
+  font-size: min(
+    var(--event-label-font-size),
+    calc(var(--main-font-size) * 0.31)
+  );
+  line-height: 0.78;
   white-space: nowrap;
 }
 
@@ -68,92 +82,113 @@
   margin-top: 0;
   font-size: min(
     var(--event-value-font-size),
-    calc(var(--main-font-size) * 0.38)
+    calc(var(--main-font-size) * 0.65)
   );
-  letter-spacing: -0.055em;
-  line-height: 0.92;
+  letter-spacing: -0.065em;
+  line-height: 0.88;
   text-overflow: ellipsis;
+}
+
+.increment-event.is-visible {
+  animation: increment-pop 1.35s cubic-bezier(0.18, 0.85, 0.24, 1) both;
+}
+
+.increment-event.is-visible > strong {
+  animation: increment-number-hit 430ms 35ms
+    cubic-bezier(0.18, 0.9, 0.24, 1.25) both;
+}
+
+.increment-event.is-visible::after {
+  animation: contribution-streak 320ms 40ms ease-out both;
 }
 
 @keyframes increment-pop {
   0%,
-  2% {
+  3% {
     opacity: 0;
-    transform: translateX(18px) rotate(3deg) scale(0.94);
+    transform: translate(115%, -50%) rotate(5deg) scale(0.86);
   }
 
-  4% {
+  11% {
     opacity: 1;
-    transform: translateX(-2px) rotate(-1.8deg) scale(1.03);
+    transform: translate(-8px, -50%) rotate(-3deg) scale(1.06);
   }
 
-  7% {
+  17% {
     opacity: 1;
-    transform: translateX(1px) rotate(0.7deg) scale(0.99);
+    transform: translate(3px, -50%) rotate(1.1deg) scale(0.98);
   }
 
-  11%,
-  84% {
+  24%,
+  54% {
     opacity: 1;
-    transform: translateX(0) rotate(-0.7deg) scale(1);
+    transform: translate(0, -50%) rotate(-0.7deg) scale(1);
+  }
+
+  66% {
+    opacity: 1;
+    transform: translate(5px, -50%) rotate(0.4deg) scale(0.98);
   }
 
   100% {
     opacity: 0;
-    transform: translateX(14px) rotate(1.5deg) scale(0.96);
+    transform: translate(115%, -50%) rotate(4deg) skewX(-7deg)
+      scale(0.84, 0.94);
   }
 }
 
 @keyframes increment-number-hit {
   0%,
-  12% {
+  10% {
     opacity: 0;
-    transform: scale(0.84) rotate(4deg);
+    transform: translateX(18%) scale(0.62) rotate(7deg);
   }
 
   42% {
     opacity: 1;
-    transform: scale(1.08) rotate(-2deg);
+    transform: translateX(-3%) scale(1.22) rotate(-4deg);
   }
 
   68% {
-    transform: scale(0.98) rotate(0.8deg);
+    transform: translateX(1%) scale(0.96) rotate(1.2deg);
   }
 
   100% {
     opacity: 1;
-    transform: scale(1) rotate(0);
+    transform: translateX(0) scale(1) rotate(0);
   }
 }
 
-@keyframes impact-scribble {
+@keyframes contribution-streak {
   0% {
     opacity: 0;
-    transform: scale(0.82) rotate(-2deg);
+    transform: translateY(-50%) scaleX(0.15) rotate(-2deg);
   }
 
-  35% {
-    opacity: 0.45;
+  42% {
+    opacity: 0.92;
+    transform: translateY(-50%) scaleX(1.08) rotate(-2deg);
   }
 
   100% {
     opacity: 0;
-    transform: scale(1.06) rotate(1deg);
+    transform: translateY(-50%) scaleX(0.28) rotate(1deg);
   }
 }
 
 @media (max-width: 640px) {
-  .ringfit-widget.has-increment .action-copy {
-    max-width: calc(100% - 72px);
-  }
-
   .increment-event {
     right: 7px;
-    max-width: 68px;
-    padding-inline: 6px;
+    width: 104px;
+    max-width: calc(100% - 174px);
+    padding-inline: 12px 8px;
+  }
+
+  .increment-event > span {
+    font-size: min(var(--event-label-font-size), 14px);
   }
 
   .increment-event > strong {
-    font-size: min(var(--event-value-font-size), 16px);
+    font-size: min(var(--event-value-font-size), 26px);
   }
 }

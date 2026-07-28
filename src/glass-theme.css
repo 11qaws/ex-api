@@ -84,12 +84,14 @@
 }
 
 .ringfit-widget[data-theme="glass"] .increment-event::after {
-  background: repeating-conic-gradient(
-    from 4deg,
-    transparent 0 10deg,
-    rgb(255 99 76 / 55%) 11deg 12deg,
-    transparent 13deg 27deg
+  background: linear-gradient(
+    90deg,
+    transparent 0 7%,
+    rgb(255 99 76 / 14%) 18%,
+    rgb(255 99 76 / 62%) 82%,
+    rgb(255 99 76 / 88%) 100%
   );
+  box-shadow: 0 0 10px rgb(255 88 61 / 20%);
 }
 
 .ringfit-widget[data-theme="glass"] .increment-event > strong {
