@@ -75,7 +75,6 @@ baselineElement.textContent = config.baselineText.replaceAll(
 );
 
 function renderFollowerCount(followerCount) {
-  const isInitialRender = !hasRenderedData;
   const result = calculateRingFit(
     followerCount,
     config.initialFollowers,
@@ -88,9 +87,6 @@ function renderFollowerCount(followerCount) {
   widget.dataset.state = "ready";
   widget.removeAttribute("title");
   hasRenderedData = true;
-  if (isInitialRender) {
-    playGainAnimation();
-  }
 
   return result;
 }
