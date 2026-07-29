@@ -14,6 +14,7 @@ import {
   formatDurationParts,
   formatDurationSeconds,
   getCountdownDisplayPhase,
+  getCountdownDurationHighlight,
   getCountdownTickDelay,
   getChangedDurationUnits,
   getNextCountdownRefreshAtMs,
@@ -249,7 +250,7 @@ function renderTotalDuration(totalSeconds, { highlight = "auto" } = {}) {
   delete totalDurationElement.dataset.announcement;
   const parts = formatDurationParts(totalSeconds);
   const changedUnits = new Set(
-    highlight === "gain" || highlight === "ending"
+    ["ending", "gain", "steady"].includes(highlight)
       ? parts.map((part) => part.unit)
       : highlight === "none"
         ? []
@@ -414,7 +415,12 @@ function renderCountdown({
     renderCountdownAnnouncement(config.startText);
     renderActionCopy(config.actionText);
   } else if (displayPhase.phase === "ending") {
-    renderTotalDuration(remainingSeconds, { highlight: "ending" });
+    renderTotalDuration(remainingSeconds, {
+      highlight: getCountdownDurationHighlight({
+        highlightGain,
+        phase: displayPhase.phase,
+      }),
+    });
     renderActionCopy(gainActionOverride || config.actionText);
   } else if (displayPhase.phase === "final-check") {
     renderCountdownAnnouncement("0초", "final");
@@ -424,7 +430,10 @@ function renderCountdown({
     renderActionCopy("");
   } else {
     renderTotalDuration(remainingSeconds, {
-      highlight: highlightGain ? "gain" : "none",
+      highlight: getCountdownDurationHighlight({
+        highlightGain,
+        phase: displayPhase.phase,
+      }),
     });
   }
 

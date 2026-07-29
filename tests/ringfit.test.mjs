@@ -10,6 +10,7 @@ import {
   formatDurationParts,
   formatMinutes,
   getCountdownDisplayPhase,
+  getCountdownDurationHighlight,
   getNextCountdownRefreshAtMs,
   getCountdownPreviewNowMs,
   getCountdownPreviewStartAtMs,
@@ -185,6 +186,37 @@ test("업보 시작 연출은 -60초부터 시작해 +3초에 정상 타이머�
       startAtMs,
     }),
     { cueSeconds: null, phase: "ended" },
+  );
+});
+
+test("진행 중 타이머 배경은 유지하고 시간 추가 때만 다시 그린다", () => {
+  assert.equal(
+    getCountdownDurationHighlight({
+      highlightGain: false,
+      phase: "running",
+    }),
+    "steady",
+  );
+  assert.equal(
+    getCountdownDurationHighlight({
+      highlightGain: true,
+      phase: "running",
+    }),
+    "gain",
+  );
+  assert.equal(
+    getCountdownDurationHighlight({
+      highlightGain: false,
+      phase: "ending",
+    }),
+    "ending",
+  );
+  assert.equal(
+    getCountdownDurationHighlight({
+      highlightGain: true,
+      phase: "starting",
+    }),
+    "none",
   );
 });
 

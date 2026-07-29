@@ -167,6 +167,19 @@ export function getCountdownDisplayPhase({
   return { cueSeconds: null, phase: "running" };
 }
 
+export function getCountdownDurationHighlight({
+  highlightGain = false,
+  phase,
+}) {
+  if (phase === "ending") {
+    return "ending";
+  }
+  if (phase === "running") {
+    return highlightGain ? "gain" : "steady";
+  }
+  return "none";
+}
+
 export function getCountdownTickDelay({
   nowMs,
   startAtMs,

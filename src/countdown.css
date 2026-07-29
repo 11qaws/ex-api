@@ -256,7 +256,7 @@
   animation: ending-underline 1.5s 690ms ease-out both;
 }
 
-.ringfit-widget[data-mode="countdown"].is-countdown-gain-exit
+.ringfit-widget[data-mode="countdown"][data-countdown-state="ending"].is-countdown-gain-exit
   .total-duration
   mark::before {
   animation: countdown-highlight-fold 320ms ease-in both;
