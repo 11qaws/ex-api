@@ -7,9 +7,11 @@ import {
   calculateCountdownState,
   calculateIncrementSeconds,
   calculateRingFit,
+  DEFAULT_COUNTDOWN_PREVIEW_LEAD_SECONDS,
   formatClockTime,
   formatDurationParts,
   formatDurationSeconds,
+  getCountdownPreviewNowMs,
   getChangedDurationUnits,
   parseWidgetConfig,
 } from "./ringfit.js";
@@ -43,6 +45,9 @@ const apiBase = config.apiBase || environmentApiBase;
 const numberFormatter = new Intl.NumberFormat("ko-KR");
 const isCountdownMode = config.mode === "countdown";
 const runtimeStartAtMs = config.startAtMs ?? Date.now();
+const isCountdownPreview =
+  isCountdownMode && config.previewFollowers !== null;
+const countdownPreviewLoadedAtMs = Date.now();
 const countdownStorageKey = [
   "eureka-ringfit-countdown",
   config.channelId,
@@ -66,6 +71,18 @@ let currentFollowerCount = null;
 let highestFollowerCount = null;
 let countdownEnded = false;
 let countdownDisplayLocked = false;
+
+function getCountdownNowMs() {
+  if (!isCountdownPreview) {
+    return Date.now();
+  }
+
+  return getCountdownPreviewNowMs({
+    loadedAtMs: countdownPreviewLoadedAtMs,
+    nowMs: Date.now(),
+    startAtMs: runtimeStartAtMs,
+  });
+}
 
 function loadCountdownSession() {
   if (!isCountdownMode || config.previewFollowers !== null) {
@@ -220,7 +237,7 @@ function renderEndingTime(endAtMs) {
   endingTimeElement.textContent = nextEndingTime;
 }
 
-function getCountdownState(nowMs = Date.now()) {
+function getCountdownState(nowMs = getCountdownNowMs()) {
   const effectiveFollowerCount = Math.max(
     config.initialFollowers,
     highestFollowerCount ?? currentFollowerCount ?? config.initialFollowers,
@@ -235,7 +252,10 @@ function getCountdownState(nowMs = Date.now()) {
   });
 }
 
-function renderCountdown({ highlightGain = false, nowMs = Date.now() } = {}) {
+function renderCountdown({
+  highlightGain = false,
+  nowMs = getCountdownNowMs(),
+} = {}) {
   const state = getCountdownState(nowMs);
   const remainingSeconds = countdownEnded ? 0 : state.remainingSeconds;
 
@@ -262,7 +282,10 @@ function renderCountdown({ highlightGain = false, nowMs = Date.now() } = {}) {
 
 function renderFollowerCount(
   followerCount,
-  { highlightGain = false, nowMs = Date.now() } = {},
+  {
+    highlightGain = false,
+    nowMs = isCountdownMode ? getCountdownNowMs() : Date.now(),
+  } = {},
 ) {
   const result = calculateRingFit(
     followerCount,
@@ -327,11 +350,16 @@ function playPreviewAnimation() {
   highestFollowerCount = previousPreviewFollowers;
   countdownEnded = false;
   renderFollowerCount(previousPreviewFollowers, {
-    nowMs: isCountdownMode ? runtimeStartAtMs + 400 : Date.now(),
+    nowMs: isCountdownMode ? getCountdownNowMs() : Date.now(),
   });
   previousFollowerCount = previousPreviewFollowers;
 
   clearTimeout(previewAnimationTimer);
+  const previewGainDelay =
+    650 +
+    (isCountdownMode
+      ? DEFAULT_COUNTDOWN_PREVIEW_LEAD_SECONDS * 1000
+      : 0);
   previewAnimationTimer = window.setTimeout(() => {
     highestFollowerCount = Math.max(
       highestFollowerCount,
@@ -339,11 +367,11 @@ function playPreviewAnimation() {
     );
     renderFollowerCount(config.previewFollowers, {
       highlightGain: isCountdownMode,
-      nowMs: isCountdownMode ? runtimeStartAtMs + 800 : Date.now(),
+      nowMs: isCountdownMode ? getCountdownNowMs() : Date.now(),
     });
     showIncrementEvent(config.previewEventDelta);
     previousFollowerCount = config.previewFollowers;
-  }, 650);
+  }, previewGainDelay);
 }
 
 function playGainAnimation(duration = 820) {
@@ -469,7 +497,7 @@ function scheduleCountdownTick() {
     return;
   }
 
-  const elapsed = Math.max(0, Date.now() - runtimeStartAtMs);
+  const elapsed = Math.max(0, getCountdownNowMs() - runtimeStartAtMs);
   const delay = 1000 - (elapsed % 1000) + 24;
   countdownTimer = window.setTimeout(() => {
     if (

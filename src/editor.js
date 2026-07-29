@@ -6,6 +6,7 @@ import {
   DEFAULT_FONT_SIZE,
   DEFAULT_INITIAL_FOLLOWERS,
   DEFAULT_MINUTES_PER_FOLLOWER,
+  getCountdownPreviewStartAtMs,
   parseWidgetConfig,
 } from "./ringfit.js";
 
@@ -187,10 +188,9 @@ function buildWidgetUrl(config, { preview = false } = {}) {
     params.set("eventDelta", "1");
     params.set("refresh", "10");
     if (config.mode === "countdown") {
-      // The preview clock must start when the iframe finishes loading.
-      // A timestamp created here can already be stale after background-tab
-      // throttling or a slow network response.
-      params.delete("startAt");
+      // Keep the sample clock on :00 so each follower moves the ending clock
+      // by exactly 30 seconds (:00 <-> :30), regardless of iframe load time.
+      params.set("startAt", String(getCountdownPreviewStartAtMs()));
       params.set("session", `preview-${Date.now()}`);
     }
   }

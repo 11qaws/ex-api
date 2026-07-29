@@ -9,6 +9,8 @@ import {
   formatDurationSeconds,
   formatDurationParts,
   formatMinutes,
+  getCountdownPreviewNowMs,
+  getCountdownPreviewStartAtMs,
   getChangedDurationUnits,
   parseWidgetConfig,
 } from "../src/ringfit.js";
@@ -164,6 +166,60 @@ test("예상 종료시각은 한국시간 시계와 자정 이후 날짜를 표�
       referenceTimestampMs: reference,
     }),
     "8.3. 00:00:30",
+  );
+});
+
+test("미리보기 종료시각은 시작 :00에서 팔로워마다 정확히 30초씩 이동한다", () => {
+  const loadedAtMs = Date.UTC(2026, 6, 29, 11, 40, 59, 554);
+  const startAtMs = getCountdownPreviewStartAtMs(loadedAtMs);
+  const beforeGain = calculateCountdownState({
+    followerCount: 1270,
+    initialFollowers: 1031,
+    minutesPerFollower: 0.5,
+    nowMs: startAtMs,
+    startAtMs,
+  });
+  const afterGain = calculateCountdownState({
+    followerCount: 1271,
+    initialFollowers: 1031,
+    minutesPerFollower: 0.5,
+    nowMs: startAtMs,
+    startAtMs,
+  });
+
+  assert.equal(startAtMs, Date.UTC(2026, 6, 29, 11, 40, 0, 0));
+  assert.equal(formatClockTime(beforeGain.endAtMs), "22:39:30");
+  assert.equal(formatClockTime(afterGain.endAtMs), "22:40:00");
+  assert.equal(afterGain.endAtMs - beforeGain.endAtMs, 30_000);
+});
+
+test("업보 미리보기의 가상 시계는 시작시각 5초 전부터 흐른다", () => {
+  const startAtMs = Date.UTC(2026, 6, 29, 11, 40, 0);
+  const loadedAtMs = 10_000;
+
+  assert.equal(
+    getCountdownPreviewNowMs({
+      loadedAtMs,
+      nowMs: loadedAtMs,
+      startAtMs,
+    }),
+    startAtMs - 5_000,
+  );
+  assert.equal(
+    getCountdownPreviewNowMs({
+      loadedAtMs,
+      nowMs: loadedAtMs + 5_000,
+      startAtMs,
+    }),
+    startAtMs,
+  );
+  assert.equal(
+    getCountdownPreviewNowMs({
+      loadedAtMs,
+      nowMs: loadedAtMs + 5_650,
+      startAtMs,
+    }),
+    startAtMs + 650,
   );
 });
 

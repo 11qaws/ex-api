@@ -7,6 +7,7 @@ export const DEFAULT_WIDGET_HEIGHT = 100;
 export const DEFAULT_FONT_SIZE = 48;
 export const DEFAULT_WIDGET_THEME = "glass";
 export const DEFAULT_WIDGET_MODE = "accrual";
+export const DEFAULT_COUNTDOWN_PREVIEW_LEAD_SECONDS = 5;
 export const DEFAULT_COPY = Object.freeze({
   actionText: "팔로우 눌러서 일요일 링피트",
   baselineText: "기준 {initial}명부터",
@@ -89,6 +90,35 @@ function timestampMilliseconds(value) {
 
 export function isValidChannelId(value) {
   return CHANNEL_ID_PATTERN.test(value);
+}
+
+export function getCountdownPreviewStartAtMs(nowMs = Date.now()) {
+  const safeNowMs = Math.max(0, finiteNumber(nowMs, Date.now()));
+  return Math.floor(safeNowMs / 60_000) * 60_000;
+}
+
+export function getCountdownPreviewNowMs({
+  loadedAtMs,
+  nowMs = Date.now(),
+  startAtMs,
+  leadSeconds = DEFAULT_COUNTDOWN_PREVIEW_LEAD_SECONDS,
+}) {
+  const safeLoadedAtMs = Math.max(0, finiteNumber(loadedAtMs, Date.now()));
+  const safeNowMs = Math.max(
+    safeLoadedAtMs,
+    finiteNumber(nowMs, safeLoadedAtMs),
+  );
+  const safeStartAtMs = Math.max(
+    0,
+    finiteNumber(startAtMs, safeLoadedAtMs),
+  );
+  const safeLeadMs =
+    Math.max(0, finiteNumber(leadSeconds, 0)) * 1000;
+
+  return Math.max(
+    0,
+    safeStartAtMs - safeLeadMs + (safeNowMs - safeLoadedAtMs),
+  );
 }
 
 export function parseWidgetConfig(search = "") {
