@@ -68,7 +68,7 @@ const fontRatios = {
 const modeDefaults = {
   accrual: {
     ...DEFAULT_COPY,
-    endLabel: "끝",
+    endLabel: DEFAULT_COUNTDOWN_COPY.endLabel,
     endedText: DEFAULT_COUNTDOWN_COPY.endedText,
     waitingText: DEFAULT_COUNTDOWN_COPY.waitingText,
   },
@@ -187,7 +187,10 @@ function buildWidgetUrl(config, { preview = false } = {}) {
     params.set("eventDelta", "1");
     params.set("refresh", "10");
     if (config.mode === "countdown") {
-      params.set("startAt", String(Date.now() + 250));
+      // The preview clock must start when the iframe finishes loading.
+      // A timestamp created here can already be stale after background-tab
+      // throttling or a slow network response.
+      params.delete("startAt");
       params.set("session", `preview-${Date.now()}`);
     }
   }
@@ -346,10 +349,7 @@ for (const tab of modeTabs) {
 
 replayButton.addEventListener("click", () => {
   currentPreviewUrl = buildWidgetUrl(normalizedConfig(), { preview: true });
-  previewFrame.src = "about:blank";
-  window.requestAnimationFrame(() => {
-    previewFrame.src = currentPreviewUrl;
-  });
+  previewFrame.src = currentPreviewUrl;
 });
 
 copyButton.addEventListener("click", async () => {
