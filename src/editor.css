@@ -589,6 +589,27 @@ input[type="range"] {
   letter-spacing: -0.04em;
 }
 
+.countdown-preview-controls {
+  display: flex;
+  gap: 6px;
+}
+
+.countdown-preview-controls[hidden] {
+  display: none;
+}
+
+.countdown-preview-controls .replay-button {
+  background: rgb(255 255 255 / 10%);
+  color: #b9ddc9;
+  outline: 1px solid rgb(255 255 255 / 18%);
+}
+
+.countdown-preview-controls .replay-button[aria-pressed="true"] {
+  background: var(--orange);
+  color: var(--orange-deep);
+  outline-color: transparent;
+}
+
 .preview-viewport {
   --preview-stage-height: 132px;
   position: relative;

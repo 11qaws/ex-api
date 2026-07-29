@@ -7,9 +7,13 @@ export const DEFAULT_WIDGET_HEIGHT = 100;
 export const DEFAULT_FONT_SIZE = 48;
 export const DEFAULT_WIDGET_THEME = "glass";
 export const DEFAULT_WIDGET_MODE = "accrual";
-export const DEFAULT_COUNTDOWN_PREVIEW_LEAD_SECONDS = 5;
-export const COUNTDOWN_CUE_SECONDS = 3;
+export const DEFAULT_COUNTDOWN_PREVIEW_LEAD_SECONDS = 60;
+export const COUNTDOWN_CUE_SECONDS = 60;
 export const COUNTDOWN_START_HOLD_SECONDS = 3;
+export const COUNTDOWN_FIRST_REFRESH_DELAY_SECONDS = 5;
+export const COUNTDOWN_END_PREVIEW_SECONDS = 30;
+export const COUNTDOWN_FINAL_CHECK_SECONDS = 3;
+export const COUNTDOWN_END_CHECKPOINTS = Object.freeze([30, 20, 10, 5, 1, 0]);
 export const DEFAULT_COPY = Object.freeze({
   actionText: "팔로우 눌러서 일요일 링피트",
   baselineText: "기준 {initial}명부터",
@@ -22,8 +26,10 @@ export const DEFAULT_COUNTDOWN_COPY = Object.freeze({
   actionText: "팔로우 누르면 링피트 +30초",
   endLabel: "이대로면",
   endedText: "업보 청산",
+  lastChanceText: "끝난줄?",
   resultLabel: "업보",
-  startText: "링피트 시작",
+  startPreviewText: "준비중 >> 링피트",
+  startText: "링피트 시작!!",
   waitingText: "시작 전",
 });
 
@@ -40,6 +46,7 @@ const FONT_RATIOS = Object.freeze({
 const CHANNEL_ID_PATTERN = /^[a-f0-9]{32}$/i;
 const WIDGET_THEMES = new Set(["glass", "paper"]);
 const WIDGET_MODES = new Set(["accrual", "countdown"]);
+const COUNTDOWN_PREVIEW_SEQUENCES = new Set(["start", "end"]);
 
 function finiteNumber(value, fallback) {
   if (value === null || value === undefined || value === "") {
@@ -125,8 +132,10 @@ export function getCountdownPreviewNowMs({
 }
 
 export function getCountdownDisplayPhase({
+  finalCheckActive = false,
   hasEnded = false,
   nowMs,
+  remainingSeconds = Number.POSITIVE_INFINITY,
   startAtMs,
 }) {
   if (hasEnded) {
@@ -149,6 +158,12 @@ export function getCountdownDisplayPhase({
   if (deltaMs < COUNTDOWN_START_HOLD_SECONDS * 1000) {
     return { cueSeconds: null, phase: "starting" };
   }
+  if (finalCheckActive || remainingSeconds <= 0) {
+    return { cueSeconds: null, phase: "final-check" };
+  }
+  if (remainingSeconds <= COUNTDOWN_END_PREVIEW_SECONDS) {
+    return { cueSeconds: null, phase: "ending" };
+  }
   return { cueSeconds: null, phase: "running" };
 }
 
@@ -163,6 +178,37 @@ export function getCountdownTickDelay({
   const remainderMs = ((offsetMs % 1000) + 1000) % 1000;
 
   return 1000 - remainderMs + Math.max(0, finiteNumber(paddingMs, 0));
+}
+
+export function getNextCountdownRefreshAtMs({
+  nowMs,
+  startAtMs,
+  refreshSeconds = DEFAULT_REFRESH_SECONDS,
+}) {
+  const safeStartAtMs = Math.max(0, finiteNumber(startAtMs, 0));
+  const safeNowMs = Math.max(0, finiteNumber(nowMs, safeStartAtMs));
+  const refreshMs =
+    Math.max(1, finiteNumber(refreshSeconds, DEFAULT_REFRESH_SECONDS)) * 1000;
+  const firstRefreshAtMs =
+    safeStartAtMs + COUNTDOWN_FIRST_REFRESH_DELAY_SECONDS * 1000;
+  const offsetMs = safeNowMs - safeStartAtMs;
+
+  if (offsetMs >= 0 && safeNowMs < firstRefreshAtMs) {
+    return firstRefreshAtMs;
+  }
+
+  const nextStep = Math.floor(offsetMs / refreshMs) + 1;
+  const nextGridAtMs = safeStartAtMs + nextStep * refreshMs;
+
+  return nextGridAtMs === safeStartAtMs
+    ? firstRefreshAtMs
+    : nextGridAtMs;
+}
+
+export function isCountdownEndCheckpoint(remainingSeconds) {
+  return COUNTDOWN_END_CHECKPOINTS.includes(
+    Math.trunc(finiteNumber(remainingSeconds, -1)),
+  );
 }
 
 export function parseWidgetConfig(search = "") {
@@ -279,6 +325,12 @@ export function parseWidgetConfig(search = "") {
     0,
     1_000_000,
   );
+  const requestedPreviewSequence = params.get("previewSequence") ?? "start";
+  const previewSequence = COUNTDOWN_PREVIEW_SEQUENCES.has(
+    requestedPreviewSequence,
+  )
+    ? requestedPreviewSequence
+    : "start";
 
   return {
     actionSize,
@@ -321,10 +373,16 @@ export function parseWidgetConfig(search = "") {
     followerLabelSize,
     fontSize,
     initialFollowers,
+    lastChanceText: boundedText(
+      params.get("lastChanceText"),
+      DEFAULT_COUNTDOWN_COPY.lastChanceText,
+      20,
+    ),
     minutesPerFollower,
     mode,
     previewEventDelta,
     previewFollowers,
+    previewSequence,
     refreshSeconds,
     resultLabel: boundedText(
       params.get("resultLabel"),
@@ -339,6 +397,11 @@ export function parseWidgetConfig(search = "") {
       params.get("startText"),
       DEFAULT_COUNTDOWN_COPY.startText,
       20,
+    ),
+    startPreviewText: boundedText(
+      params.get("startPreviewText"),
+      DEFAULT_COUNTDOWN_COPY.startPreviewText,
+      30,
     ),
     startAtMs: timestampMilliseconds(params.get("startAt")),
     theme,

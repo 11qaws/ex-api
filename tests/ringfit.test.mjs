@@ -10,10 +10,12 @@ import {
   formatDurationParts,
   formatMinutes,
   getCountdownDisplayPhase,
+  getNextCountdownRefreshAtMs,
   getCountdownPreviewNowMs,
   getCountdownPreviewStartAtMs,
   getCountdownTickDelay,
   getChangedDurationUnits,
+  isCountdownEndCheckpoint,
   parseWidgetConfig,
 } from "../src/ringfit.js";
 
@@ -83,7 +85,7 @@ test("유리 테마를 기본값으로 사용하고 종이 테마도 URL 옵션�
 
 test("업보 타이머 URL은 시작시각과 모든 상태 문구를 읽는다", () => {
   const config = parseWidgetConfig(
-    "?mode=countdown&startAt=1785646800&session=20260802&waitingText=곧%20시작&startText=운동%20시작&endedText=업보%20청산",
+    "?mode=countdown&startAt=1785646800&session=20260802&waitingText=곧%20시작&startPreviewText=운동%20준비&startText=운동%20시작&lastChanceText=끝난줄&endedText=업보%20청산",
   );
 
   assert.equal(config.mode, "countdown");
@@ -93,7 +95,9 @@ test("업보 타이머 URL은 시작시각과 모든 상태 문구를 읽는다"
   assert.equal(config.resultLabel, "업보");
   assert.equal(config.endLabel, "이대로면");
   assert.equal(config.waitingText, "곧 시작");
+  assert.equal(config.startPreviewText, "운동 준비");
   assert.equal(config.startText, "운동 시작");
+  assert.equal(config.lastChanceText, "끝난줄");
   assert.equal(config.endedText, "업보 청산");
 });
 
@@ -107,24 +111,27 @@ test("업보 타이머의 누락 없는 기본 문구를 제공한다", () => {
   assert.equal(config.eventLabel, "방금 추가");
   assert.equal(config.endLabel, "이대로면");
   assert.equal(config.waitingText, "시작 전");
-  assert.equal(config.startText, "링피트 시작");
+  assert.equal(config.startPreviewText, "준비중 >> 링피트");
+  assert.equal(config.startText, "링피트 시작!!");
+  assert.equal(config.lastChanceText, "끝난줄?");
   assert.equal(config.endedText, "업보 청산");
+  assert.equal(config.previewSequence, "start");
 });
 
-test("업보 시작 연출은 -3초부터 시작해 +3초에 정상 타이머로 전환한다", () => {
+test("업보 시작 연출은 -60초부터 시작해 +3초에 정상 타이머로 전환한다", () => {
   const startAtMs = 100_000;
 
   assert.deepEqual(
-    getCountdownDisplayPhase({ nowMs: startAtMs - 4_000, startAtMs }),
+    getCountdownDisplayPhase({ nowMs: startAtMs - 60_001, startAtMs }),
     { cueSeconds: null, phase: "waiting" },
   );
   assert.deepEqual(
-    getCountdownDisplayPhase({ nowMs: startAtMs - 3_000, startAtMs }),
-    { cueSeconds: -3, phase: "count-in" },
+    getCountdownDisplayPhase({ nowMs: startAtMs - 60_000, startAtMs }),
+    { cueSeconds: -60, phase: "count-in" },
   );
   assert.deepEqual(
-    getCountdownDisplayPhase({ nowMs: startAtMs - 2_000, startAtMs }),
-    { cueSeconds: -2, phase: "count-in" },
+    getCountdownDisplayPhase({ nowMs: startAtMs - 59_000, startAtMs }),
+    { cueSeconds: -59, phase: "count-in" },
   );
   assert.deepEqual(
     getCountdownDisplayPhase({ nowMs: startAtMs - 1_000, startAtMs }),
@@ -139,8 +146,37 @@ test("업보 시작 연출은 -3초부터 시작해 +3초에 정상 타이머로
     { cueSeconds: null, phase: "starting" },
   );
   assert.deepEqual(
-    getCountdownDisplayPhase({ nowMs: startAtMs + 3_000, startAtMs }),
+    getCountdownDisplayPhase({
+      nowMs: startAtMs + 3_000,
+      remainingSeconds: 31,
+      startAtMs,
+    }),
     { cueSeconds: null, phase: "running" },
+  );
+  assert.deepEqual(
+    getCountdownDisplayPhase({
+      nowMs: startAtMs + 3_000,
+      remainingSeconds: 30,
+      startAtMs,
+    }),
+    { cueSeconds: null, phase: "ending" },
+  );
+  assert.deepEqual(
+    getCountdownDisplayPhase({
+      nowMs: startAtMs + 3_000,
+      remainingSeconds: 0,
+      startAtMs,
+    }),
+    { cueSeconds: null, phase: "final-check" },
+  );
+  assert.deepEqual(
+    getCountdownDisplayPhase({
+      finalCheckActive: true,
+      nowMs: startAtMs + 3_000,
+      remainingSeconds: 30,
+      startAtMs,
+    }),
+    { cueSeconds: null, phase: "final-check" },
   );
   assert.deepEqual(
     getCountdownDisplayPhase({
@@ -150,6 +186,63 @@ test("업보 시작 연출은 -3초부터 시작해 +3초에 정상 타이머로
     }),
     { cueSeconds: null, phase: "ended" },
   );
+});
+
+test("30초 팔로워 조회는 시작시각 기준 00·30초와 첫 +5초에 맞춘다", () => {
+  const startAtMs = 100_000;
+
+  assert.equal(
+    getNextCountdownRefreshAtMs({
+      nowMs: startAtMs - 60_350,
+      startAtMs,
+    }),
+    startAtMs - 60_000,
+  );
+  assert.equal(
+    getNextCountdownRefreshAtMs({
+      nowMs: startAtMs - 60_000,
+      startAtMs,
+    }),
+    startAtMs - 30_000,
+  );
+  assert.equal(
+    getNextCountdownRefreshAtMs({
+      nowMs: startAtMs - 30_000,
+      startAtMs,
+    }),
+    startAtMs + 5_000,
+  );
+  assert.equal(
+    getNextCountdownRefreshAtMs({
+      nowMs: startAtMs,
+      startAtMs,
+    }),
+    startAtMs + 5_000,
+  );
+  assert.equal(
+    getNextCountdownRefreshAtMs({
+      nowMs: startAtMs + 5_000,
+      startAtMs,
+    }),
+    startAtMs + 30_000,
+  );
+  assert.equal(
+    getNextCountdownRefreshAtMs({
+      nowMs: startAtMs + 30_000,
+      startAtMs,
+    }),
+    startAtMs + 60_000,
+  );
+});
+
+test("종료 30초 안에서는 지정된 남은시간에만 추가 조회한다", () => {
+  for (const checkpoint of [30, 20, 10, 5, 1, 0]) {
+    assert.equal(isCountdownEndCheckpoint(checkpoint), true);
+  }
+
+  for (const otherSecond of [31, 29, 2, -1, Number.NaN]) {
+    assert.equal(isCountdownEndCheckpoint(otherSecond), false);
+  }
 });
 
 test("업보 시작 전에도 다음 정각 초 경계에 맞춰 갱신한다", () => {
@@ -257,7 +350,7 @@ test("미리보기 종료시각은 시작 :00에서 팔로워마다 정확히 30
   assert.equal(afterGain.endAtMs - beforeGain.endAtMs, 30_000);
 });
 
-test("업보 미리보기의 가상 시계는 시작시각 5초 전부터 흐른다", () => {
+test("업보 시작 미리보기의 가상 시계는 시작시각 60초 전부터 흐른다", () => {
   const startAtMs = Date.UTC(2026, 6, 29, 11, 40, 0);
   const loadedAtMs = 10_000;
 
@@ -267,12 +360,12 @@ test("업보 미리보기의 가상 시계는 시작시각 5초 전부터 흐른
       nowMs: loadedAtMs,
       startAtMs,
     }),
-    startAtMs - 5_000,
+    startAtMs - 60_000,
   );
   assert.equal(
     getCountdownPreviewNowMs({
       loadedAtMs,
-      nowMs: loadedAtMs + 5_000,
+      nowMs: loadedAtMs + 60_000,
       startAtMs,
     }),
     startAtMs,
@@ -280,10 +373,19 @@ test("업보 미리보기의 가상 시계는 시작시각 5초 전부터 흐른
   assert.equal(
     getCountdownPreviewNowMs({
       loadedAtMs,
-      nowMs: loadedAtMs + 5_650,
+      nowMs: loadedAtMs + 65_000,
       startAtMs,
     }),
-    startAtMs + 650,
+    startAtMs + 5_000,
+  );
+});
+
+test("업보 미리보기 시퀀스는 시작과 종료만 허용한다", () => {
+  assert.equal(parseWidgetConfig("?previewSequence=start").previewSequence, "start");
+  assert.equal(parseWidgetConfig("?previewSequence=end").previewSequence, "end");
+  assert.equal(
+    parseWidgetConfig("?previewSequence=unknown").previewSequence,
+    "start",
   );
 });
 

@@ -7,14 +7,17 @@ import {
   calculateCountdownState,
   calculateIncrementSeconds,
   calculateRingFit,
-  DEFAULT_COUNTDOWN_PREVIEW_LEAD_SECONDS,
+  COUNTDOWN_END_PREVIEW_SECONDS,
+  COUNTDOWN_FINAL_CHECK_SECONDS,
+  COUNTDOWN_FIRST_REFRESH_DELAY_SECONDS,
   formatClockTime,
   formatDurationParts,
   formatDurationSeconds,
   getCountdownDisplayPhase,
-  getCountdownPreviewNowMs,
   getCountdownTickDelay,
   getChangedDurationUnits,
+  getNextCountdownRefreshAtMs,
+  isCountdownEndCheckpoint,
   parseWidgetConfig,
 } from "./ringfit.js";
 
@@ -50,6 +53,29 @@ const runtimeStartAtMs = config.startAtMs ?? Date.now();
 const isCountdownPreview =
   isCountdownMode && config.previewFollowers !== null;
 const countdownPreviewLoadedAtMs = Date.now();
+const previewPreviousFollowers =
+  config.previewFollowers === null
+    ? null
+    : Math.max(
+        config.initialFollowers,
+        config.previewFollowers - config.previewEventDelta,
+      );
+const previewAccruedSeconds =
+  previewPreviousFollowers === null
+    ? 0
+    : Math.round(
+        calculateRingFit(
+          previewPreviousFollowers,
+          config.initialFollowers,
+          config.minutesPerFollower,
+        ).minutes * 60,
+      );
+const countdownPreviewBaseNowMs =
+  config.previewSequence === "end"
+    ? runtimeStartAtMs +
+      Math.max(COUNTDOWN_END_PREVIEW_SECONDS, previewAccruedSeconds) * 1000 -
+      COUNTDOWN_END_PREVIEW_SECONDS * 1000
+    : runtimeStartAtMs - 60_000;
 const countdownStorageKey = [
   "eureka-ringfit-countdown",
   config.channelId,
@@ -64,6 +90,7 @@ let gainAnimationTimer;
 let previewAnimationTimer;
 let countdownExitTimer;
 let countdownResumeTimer;
+let finalCheckTimer;
 let activeRequest;
 let hasRenderedData = false;
 let hasPlayedPreviewAnimation = false;
@@ -73,17 +100,21 @@ let currentFollowerCount = null;
 let highestFollowerCount = null;
 let countdownEnded = false;
 let countdownDisplayLocked = false;
+let finalCheckStartedAtMs = null;
+let finalCheckRequestPending = false;
+let gainActionOverride = "";
+let lastCountdownCheckpointKey = "";
+let pendingCountdownFollowerCount = null;
 
 function getCountdownNowMs() {
   if (!isCountdownPreview) {
     return Date.now();
   }
 
-  return getCountdownPreviewNowMs({
-    loadedAtMs: countdownPreviewLoadedAtMs,
-    nowMs: Date.now(),
-    startAtMs: runtimeStartAtMs,
-  });
+  return Math.max(
+    0,
+    countdownPreviewBaseNowMs + (Date.now() - countdownPreviewLoadedAtMs),
+  );
 }
 
 function loadCountdownSession() {
@@ -156,7 +187,6 @@ for (const [property, value] of [
 }
 
 followerLabelElement.textContent = config.followerLabel;
-actionTextElement.textContent = config.actionText;
 resultLabelElement.textContent = config.resultLabel;
 eventLabelElement.textContent = config.eventLabel;
 endLabelElement.textContent = config.endLabel;
@@ -165,6 +195,42 @@ baselineElement.textContent = config.baselineText.replaceAll(
   "{initial}",
   numberFormatter.format(config.initialFollowers),
 );
+
+function renderActionCopy(text, { transition = false } = {}) {
+  const cacheKey = `${transition ? "transition" : "plain"}:${text}`;
+  if (actionTextElement.dataset.copy === cacheKey) {
+    return;
+  }
+
+  actionTextElement.classList.toggle(
+    "is-transition-copy",
+    transition,
+  );
+  actionTextElement.classList.toggle(
+    "is-last-chance-copy",
+    text === config.lastChanceText,
+  );
+
+  if (!transition || !text.includes(">>")) {
+    actionTextElement.textContent = text;
+    actionTextElement.dataset.copy = cacheKey;
+    return;
+  }
+
+  const [currentText, ...nextParts] = text.split(">>");
+  const current = document.createElement("span");
+  current.textContent = currentText.trim();
+  const arrows = document.createElement("span");
+  arrows.className = "countdown-transition-arrows";
+  arrows.textContent = ">>";
+  const next = document.createElement("span");
+  next.className = "countdown-transition-next";
+  next.textContent = nextParts.join(">>").trim();
+  actionTextElement.replaceChildren(current, arrows, next);
+  actionTextElement.dataset.copy = cacheKey;
+}
+
+renderActionCopy(config.actionText);
 
 function renderFollowerMetric(followerCount) {
   previousFollowerCountElement.textContent = followerCountElement.textContent;
@@ -183,7 +249,7 @@ function renderTotalDuration(totalSeconds, { highlight = "auto" } = {}) {
   delete totalDurationElement.dataset.announcement;
   const parts = formatDurationParts(totalSeconds);
   const changedUnits = new Set(
-    highlight === "gain"
+    highlight === "gain" || highlight === "ending"
       ? parts.map((part) => part.unit)
       : highlight === "none"
         ? []
@@ -203,6 +269,9 @@ function renderTotalDuration(totalSeconds, { highlight = "auto" } = {}) {
 
     const changeGroup = document.createElement("mark");
     changeGroup.className = "duration-change";
+    if (highlight === "ending") {
+      changeGroup.classList.add("ending-countdown-change");
+    }
     changeGroup.append(createDurationUnit(part));
 
     while (
@@ -228,18 +297,19 @@ function renderTotalDuration(totalSeconds, { highlight = "auto" } = {}) {
   previousTotalSeconds = totalSeconds;
 }
 
-function renderCountdownAnnouncement(text) {
-  if (totalDurationElement.dataset.announcement === text) {
+function renderCountdownAnnouncement(text, kind = "start") {
+  const cacheKey = `${kind}:${text}`;
+  if (totalDurationElement.dataset.announcement === cacheKey) {
     return;
   }
 
   const cue = document.createElement("mark");
-  cue.className = "countdown-start-cue";
+  cue.className = `countdown-start-cue countdown-${kind}-cue`;
   const cueText = document.createElement("span");
   cueText.textContent = text;
   cue.append(cueText);
   totalDurationElement.replaceChildren(cue);
-  totalDurationElement.dataset.announcement = text;
+  totalDurationElement.dataset.announcement = cacheKey;
   previousTotalSeconds = null;
 }
 
@@ -270,14 +340,66 @@ function getCountdownState(nowMs = getCountdownNowMs()) {
   });
 }
 
+function clearFinalCheck() {
+  clearTimeout(finalCheckTimer);
+  finalCheckStartedAtMs = null;
+  finalCheckRequestPending = false;
+}
+
+function finalizeCountdownIfReady() {
+  if (
+    finalCheckStartedAtMs === null ||
+    finalCheckRequestPending ||
+    countdownEnded
+  ) {
+    return;
+  }
+
+  const state = getCountdownState();
+  if (state.remainingSeconds > 0) {
+    clearFinalCheck();
+    return;
+  }
+
+  const elapsedMs = getCountdownNowMs() - finalCheckStartedAtMs;
+  if (elapsedMs < COUNTDOWN_FINAL_CHECK_SECONDS * 1000) {
+    clearTimeout(finalCheckTimer);
+    finalCheckTimer = window.setTimeout(
+      finalizeCountdownIfReady,
+      COUNTDOWN_FINAL_CHECK_SECONDS * 1000 - elapsedMs + 24,
+    );
+    return;
+  }
+
+  countdownEnded = true;
+  clearFinalCheck();
+  saveCountdownSession();
+  renderCountdown();
+}
+
+function beginFinalCheck(nowMs) {
+  if (finalCheckStartedAtMs !== null || countdownEnded) {
+    return;
+  }
+
+  finalCheckStartedAtMs = nowMs;
+  clearTimeout(finalCheckTimer);
+  finalCheckTimer = window.setTimeout(
+    finalizeCountdownIfReady,
+    COUNTDOWN_FINAL_CHECK_SECONDS * 1000 + 24,
+  );
+}
+
 function renderCountdown({
   highlightGain = false,
   nowMs = getCountdownNowMs(),
 } = {}) {
   const state = getCountdownState(nowMs);
   const displayPhase = getCountdownDisplayPhase({
-    hasEnded: countdownEnded || state.hasEnded,
+    finalCheckActive: finalCheckStartedAtMs !== null,
+    hasEnded: countdownEnded,
     nowMs,
+    remainingSeconds: state.remainingSeconds,
     startAtMs: runtimeStartAtMs,
   });
   const remainingSeconds = countdownEnded ? 0 : state.remainingSeconds;
@@ -287,10 +409,19 @@ function renderCountdown({
 
   if (displayPhase.phase === "count-in") {
     renderCountdownAnnouncement(`${displayPhase.cueSeconds}초`);
-    actionTextElement.textContent = config.actionText;
+    renderActionCopy(config.startPreviewText, { transition: true });
   } else if (displayPhase.phase === "starting") {
     renderCountdownAnnouncement(config.startText);
-    actionTextElement.textContent = config.actionText;
+    renderActionCopy(config.actionText);
+  } else if (displayPhase.phase === "ending") {
+    renderTotalDuration(remainingSeconds, { highlight: "ending" });
+    renderActionCopy(gainActionOverride || config.actionText);
+  } else if (displayPhase.phase === "final-check") {
+    renderCountdownAnnouncement("0초", "final");
+    renderActionCopy(gainActionOverride || config.actionText);
+  } else if (displayPhase.phase === "ended") {
+    renderCountdownAnnouncement(config.endedText, "ended");
+    renderActionCopy("");
   } else {
     renderTotalDuration(remainingSeconds, {
       highlight: highlightGain ? "gain" : "none",
@@ -298,15 +429,9 @@ function renderCountdown({
   }
 
   if (displayPhase.phase === "waiting") {
-    actionTextElement.textContent = `${config.waitingText} · ${config.actionText}`;
-  } else if (displayPhase.phase === "ended") {
-    actionTextElement.textContent = config.endedText;
-    if (!countdownEnded) {
-      countdownEnded = true;
-      saveCountdownSession();
-    }
+    renderActionCopy(`${config.waitingText} · ${config.actionText}`);
   } else if (displayPhase.phase === "running") {
-    actionTextElement.textContent = config.actionText;
+    renderActionCopy(gainActionOverride || config.actionText);
   }
 }
 
@@ -338,11 +463,14 @@ function renderFollowerCount(
   return result;
 }
 
-function resetCountdownGainPresentation() {
+function resetCountdownGainPresentation({ clearActionOverride = true } = {}) {
   clearTimeout(countdownExitTimer);
   clearTimeout(countdownResumeTimer);
   countdownDisplayLocked = false;
   widget.classList.remove("is-countdown-gain", "is-countdown-gain-exit");
+  if (clearActionOverride) {
+    gainActionOverride = "";
+  }
 }
 
 function hideIncrementEvent() {
@@ -354,7 +482,7 @@ function hideIncrementEvent() {
 }
 
 function beginCountdownGainPresentation() {
-  resetCountdownGainPresentation();
+  resetCountdownGainPresentation({ clearActionOverride: false });
   countdownDisplayLocked = true;
   widget.classList.add("is-countdown-gain");
 
@@ -365,42 +493,33 @@ function beginCountdownGainPresentation() {
   countdownResumeTimer = window.setTimeout(() => {
     countdownDisplayLocked = false;
     widget.classList.remove("is-countdown-gain", "is-countdown-gain-exit");
+    gainActionOverride = "";
     renderCountdown();
   }, 1_860);
 }
 
 function playPreviewAnimation() {
-  const previousPreviewFollowers = Math.max(
-    config.initialFollowers,
-    config.previewFollowers - config.previewEventDelta,
-  );
-
   hideIncrementEvent();
   resetCountdownGainPresentation();
-  highestFollowerCount = previousPreviewFollowers;
+  clearFinalCheck();
+  highestFollowerCount = previewPreviousFollowers;
   countdownEnded = false;
-  renderFollowerCount(previousPreviewFollowers, {
+  renderFollowerCount(previewPreviousFollowers, {
     nowMs: isCountdownMode ? getCountdownNowMs() : Date.now(),
   });
-  previousFollowerCount = previousPreviewFollowers;
+  previousFollowerCount = previewPreviousFollowers;
 
   clearTimeout(previewAnimationTimer);
-  const previewGainDelay =
-    650 +
-    (isCountdownMode
-      ? DEFAULT_COUNTDOWN_PREVIEW_LEAD_SECONDS * 1000
-      : 0);
+  const previewGainDelay = isCountdownMode
+    ? config.previewSequence === "end"
+      ? COUNTDOWN_END_PREVIEW_SECONDS * 1000 + 650
+      : (60 + COUNTDOWN_FIRST_REFRESH_DELAY_SECONDS) * 1000
+    : 650;
   previewAnimationTimer = window.setTimeout(() => {
-    highestFollowerCount = Math.max(
-      highestFollowerCount,
-      config.previewFollowers,
-    );
-    renderFollowerCount(config.previewFollowers, {
-      highlightGain: isCountdownMode,
+    processFollowerCount(config.previewFollowers, {
+      forcePresentation: true,
       nowMs: isCountdownMode ? getCountdownNowMs() : Date.now(),
     });
-    showIncrementEvent(config.previewEventDelta);
-    previousFollowerCount = config.previewFollowers;
   }, previewGainDelay);
 }
 
@@ -450,17 +569,63 @@ function renderError(error) {
   }
 }
 
-function processFollowerCount(followerCount) {
+function shouldDeferCountdownGain(nowMs) {
+  return (
+    isCountdownMode &&
+    highestFollowerCount !== null &&
+    nowMs < runtimeStartAtMs + COUNTDOWN_FIRST_REFRESH_DELAY_SECONDS * 1000
+  );
+}
+
+function processFollowerCount(
+  followerCount,
+  {
+    forcePresentation = false,
+    nowMs = isCountdownMode ? getCountdownNowMs() : Date.now(),
+  } = {},
+) {
   let gainedFollowers = 0;
+  let presentedFollowerCount = followerCount;
 
   if (isCountdownMode) {
+    const mergedFollowerCount = Math.max(
+      followerCount,
+      pendingCountdownFollowerCount ?? followerCount,
+    );
+    presentedFollowerCount = mergedFollowerCount;
     const previousHighWater =
-      highestFollowerCount ?? Math.max(config.initialFollowers, followerCount);
-    if (!countdownEnded && followerCount > previousHighWater) {
-      gainedFollowers = followerCount - previousHighWater;
+      highestFollowerCount ??
+      Math.max(config.initialFollowers, mergedFollowerCount);
+
+    if (
+      !forcePresentation &&
+      mergedFollowerCount > previousHighWater &&
+      shouldDeferCountdownGain(nowMs)
+    ) {
+      pendingCountdownFollowerCount = Math.max(
+        pendingCountdownFollowerCount ?? mergedFollowerCount,
+        mergedFollowerCount,
+      );
+      return;
+    }
+
+    pendingCountdownFollowerCount = null;
+    if (!countdownEnded && mergedFollowerCount > previousHighWater) {
+      gainedFollowers = mergedFollowerCount - previousHighWater;
     }
     if (!countdownEnded) {
-      highestFollowerCount = Math.max(previousHighWater, followerCount);
+      const stateBeforeGain = getCountdownState(nowMs);
+      if (
+        gainedFollowers > 0 &&
+        stateBeforeGain.hasStarted &&
+        stateBeforeGain.remainingSeconds <= 5
+      ) {
+        gainActionOverride = config.lastChanceText;
+      }
+      if (gainedFollowers > 0) {
+        clearFinalCheck();
+      }
+      highestFollowerCount = Math.max(previousHighWater, mergedFollowerCount);
       saveCountdownSession();
     }
   } else if (
@@ -470,19 +635,26 @@ function processFollowerCount(followerCount) {
     gainedFollowers = followerCount - previousFollowerCount;
   }
 
-  renderFollowerCount(followerCount, {
+  renderFollowerCount(presentedFollowerCount, {
     highlightGain: isCountdownMode && gainedFollowers > 0,
+    nowMs,
   });
 
   if (gainedFollowers > 0) {
     showIncrementEvent(gainedFollowers);
   }
-  previousFollowerCount = followerCount;
+  previousFollowerCount = presentedFollowerCount;
 }
 
-async function refresh() {
-  if (document.hidden && hasRenderedData) {
-    scheduleRefresh();
+async function refresh({
+  finalCheck = false,
+  force = false,
+  scheduleNext = true,
+} = {}) {
+  if (document.hidden && hasRenderedData && !force) {
+    if (scheduleNext) {
+      scheduleRefresh();
+    }
     return;
   }
 
@@ -492,10 +664,10 @@ async function refresh() {
 
   try {
     if (config.previewFollowers !== null) {
-      if (config.previewEventDelta > 0 && !hasPlayedPreviewAnimation) {
+      if (!hasPlayedPreviewAnimation) {
         hasPlayedPreviewAnimation = true;
         playPreviewAnimation();
-      } else {
+      } else if (config.previewEventDelta === 0) {
         processFollowerCount(config.previewFollowers);
       }
       return;
@@ -512,13 +684,76 @@ async function refresh() {
       renderError(error);
     }
   } finally {
-    scheduleRefresh();
+    if (finalCheck) {
+      finalCheckRequestPending = false;
+      finalizeCountdownIfReady();
+    }
+    if (scheduleNext) {
+      scheduleRefresh();
+    }
   }
 }
 
 function scheduleRefresh() {
   clearTimeout(refreshTimer);
-  refreshTimer = window.setTimeout(refresh, config.refreshSeconds * 1000);
+  if (!isCountdownMode) {
+    refreshTimer = window.setTimeout(
+      refresh,
+      config.refreshSeconds * 1000,
+    );
+    return;
+  }
+
+  const nowMs = getCountdownNowMs();
+  const nextRefreshAtMs = getNextCountdownRefreshAtMs({
+    nowMs,
+    refreshSeconds: config.refreshSeconds,
+    startAtMs: runtimeStartAtMs,
+  });
+  refreshTimer = window.setTimeout(
+    runScheduledCountdownRefresh,
+    Math.max(24, nextRefreshAtMs - nowMs + 24),
+  );
+}
+
+function maybeRefreshCountdownCheckpoint(nowMs) {
+  if (!isCountdownMode || countdownEnded) {
+    return false;
+  }
+
+  const state = getCountdownState(nowMs);
+  if (!state.hasStarted || !isCountdownEndCheckpoint(state.remainingSeconds)) {
+    return false;
+  }
+
+  const checkpointKey = `${state.endAtMs}:${state.remainingSeconds}`;
+  if (checkpointKey === lastCountdownCheckpointKey) {
+    return true;
+  }
+  lastCountdownCheckpointKey = checkpointKey;
+
+  const isFinalCheck = state.remainingSeconds === 0;
+  if (isFinalCheck) {
+    beginFinalCheck(nowMs);
+    finalCheckRequestPending = true;
+    renderCountdown({ nowMs });
+  }
+  void refresh({
+    finalCheck: isFinalCheck,
+    force: true,
+    scheduleNext: false,
+  });
+  return true;
+}
+
+function runScheduledCountdownRefresh() {
+  const nowMs = getCountdownNowMs();
+  if (maybeRefreshCountdownCheckpoint(nowMs)) {
+    scheduleRefresh();
+    return;
+  }
+
+  void refresh();
 }
 
 function scheduleCountdownTick() {
@@ -532,12 +767,16 @@ function scheduleCountdownTick() {
     startAtMs: runtimeStartAtMs,
   });
   countdownTimer = window.setTimeout(() => {
+    const nowMs = getCountdownNowMs();
     if (
       hasRenderedData &&
       currentFollowerCount !== null &&
       !countdownDisplayLocked
     ) {
-      renderCountdown();
+      renderCountdown({ nowMs });
+    }
+    if (hasRenderedData && currentFollowerCount !== null) {
+      maybeRefreshCountdownCheckpoint(nowMs);
     }
     scheduleCountdownTick();
   }, delay);
@@ -545,9 +784,14 @@ function scheduleCountdownTick() {
 
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden) {
-    refresh();
-    if (isCountdownMode && !countdownDisplayLocked) {
-      renderCountdown();
+    if (isCountdownMode) {
+      scheduleRefresh();
+      if (!countdownDisplayLocked) {
+        renderCountdown();
+      }
+      maybeRefreshCountdownCheckpoint(getCountdownNowMs());
+    } else {
+      refresh();
     }
   }
 });

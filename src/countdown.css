@@ -52,8 +52,36 @@
 .ringfit-widget[data-mode="countdown"][data-countdown-state="count-in"]
   [data-result-label],
 .ringfit-widget[data-mode="countdown"][data-countdown-state="starting"]
+  [data-result-label],
+.ringfit-widget[data-mode="countdown"][data-countdown-state="final-check"]
+  [data-result-label],
+.ringfit-widget[data-mode="countdown"][data-countdown-state="ended"]
   [data-result-label] {
   display: none;
+}
+
+.ringfit-widget[data-mode="countdown"] .action-copy.is-transition-copy {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.22em;
+}
+
+.countdown-transition-arrows {
+  display: inline-block;
+  color: var(--orange);
+  animation: countdown-arrow-blink 1s steps(2, start) infinite;
+}
+
+.countdown-transition-next {
+  display: inline-block;
+  animation: countdown-next-in 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.ringfit-widget[data-mode="countdown"]
+  .action-copy.is-last-chance-copy {
+  color: var(--orange);
+  animation: last-chance-copy-in 360ms cubic-bezier(0.18, 0.9, 0.24, 1.2)
+    both;
 }
 
 .ringfit-widget[data-mode="countdown"] .countdown-start-cue {
@@ -71,7 +99,24 @@
   font-size: 0.86em;
 }
 
+.ringfit-widget[data-mode="countdown"][data-countdown-state="ended"]
+  .countdown-start-cue {
+  font-size: 0.86em;
+}
+
+.ringfit-widget[data-mode="countdown"][data-countdown-state="final-check"]
+  .countdown-start-cue {
+  font-size: 1.08em;
+}
+
 .ringfit-widget[data-mode="countdown"] .countdown-start-cue::before {
+  animation: countdown-cue-fill 260ms cubic-bezier(0.18, 0.8, 0.25, 1) both;
+}
+
+.ringfit-widget[data-mode="countdown"][data-countdown-state="ending"]
+  .ending-countdown-change::before,
+.ringfit-widget[data-mode="countdown"][data-countdown-state="final-check"]
+  .ending-countdown-change::before {
   animation: countdown-cue-fill 260ms cubic-bezier(0.18, 0.8, 0.25, 1) both;
 }
 
@@ -373,6 +418,36 @@
   }
 }
 
+@keyframes countdown-arrow-blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+@keyframes countdown-next-in {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes last-chance-copy-in {
+  from {
+    opacity: 0.35;
+    transform: translateX(14px) rotate(-1deg);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0) rotate(-1deg);
+  }
+}
+
 @keyframes countdown-cue-fill {
   0% {
     opacity: 0.35;
@@ -412,6 +487,7 @@
   .ringfit-widget[data-mode="countdown"] .ending-clock::after,
   .ringfit-widget[data-mode="countdown"] .ending-time-current,
   .ringfit-widget[data-mode="countdown"] .ending-time-previous,
+  .ringfit-widget[data-mode="countdown"] .action-copy,
   .ringfit-widget[data-mode="countdown"] .countdown-start-cue::before,
   .ringfit-widget[data-mode="countdown"] .duration-unit {
     animation: none !important;

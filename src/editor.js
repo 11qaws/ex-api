@@ -20,6 +20,15 @@ const widgetLink = document.querySelector("[data-widget-link]");
 const openLink = document.querySelector("[data-open-link]");
 const copyStatus = document.querySelector("[data-copy-status]");
 const replayButton = document.querySelector("[data-replay]");
+const accrualPreviewControl = document.querySelector(
+  "[data-accrual-preview-control]",
+);
+const countdownPreviewControls = document.querySelector(
+  "[data-countdown-preview-controls]",
+);
+const previewSequenceButtons = [
+  ...document.querySelectorAll("[data-preview-sequence]"),
+];
 const copyButton = document.querySelector("[data-copy-link]");
 const themeStamp = document.querySelector("[data-theme-stamp]");
 const linkTitle = document.querySelector("[data-link-title]");
@@ -35,7 +44,9 @@ const textParameters = [
   "resultLabel",
   "eventLabel",
   "endLabel",
+  "lastChanceText",
   "waitingText",
+  "startPreviewText",
   "startText",
   "endedText",
 ];
@@ -46,7 +57,9 @@ const modeTextParameters = [
   "resultLabel",
   "eventLabel",
   "endLabel",
+  "lastChanceText",
   "waitingText",
+  "startPreviewText",
   "startText",
   "endedText",
 ];
@@ -73,6 +86,8 @@ const modeDefaults = {
     ...DEFAULT_COPY,
     endLabel: DEFAULT_COUNTDOWN_COPY.endLabel,
     endedText: DEFAULT_COUNTDOWN_COPY.endedText,
+    lastChanceText: DEFAULT_COUNTDOWN_COPY.lastChanceText,
+    startPreviewText: DEFAULT_COUNTDOWN_COPY.startPreviewText,
     startText: DEFAULT_COUNTDOWN_COPY.startText,
     waitingText: DEFAULT_COUNTDOWN_COPY.waitingText,
   },
@@ -87,6 +102,7 @@ let activeMode = "accrual";
 let previewTimer;
 let copyStatusTimer;
 let currentPreviewUrl = "";
+let activePreviewSequence = "start";
 
 function formValue(name) {
   return form.elements.namedItem(name)?.value ?? "";
@@ -152,7 +168,10 @@ function normalizedConfig() {
   return parseWidgetConfig(params);
 }
 
-function buildWidgetUrl(config, { preview = false } = {}) {
+function buildWidgetUrl(
+  config,
+  { preview = false, previewSequence = activePreviewSequence } = {},
+) {
   const url = new URL(widgetBaseUrl);
   const params = url.searchParams;
 
@@ -189,12 +208,13 @@ function buildWidgetUrl(config, { preview = false } = {}) {
       ),
     );
     params.set("eventDelta", "1");
-    params.set("refresh", "10");
+    params.set("refresh", config.mode === "countdown" ? "30" : "10");
     if (config.mode === "countdown") {
       // Keep the sample clock on :00 so each follower moves the ending clock
       // by exactly 30 seconds (:00 <-> :30), regardless of iframe load time.
       params.set("startAt", String(getCountdownPreviewStartAtMs()));
       params.set("session", `preview-${Date.now()}`);
+      params.set("previewSequence", previewSequence);
     }
   }
 
@@ -224,9 +244,15 @@ function updateModeCopy() {
   previewTitle.textContent = isCountdown
     ? "업보가 이렇게 이어짐"
     : "지금 이렇게 나감";
-  replayButton.textContent = isCountdown
-    ? "+30초 릴레이 다시 보기"
-    : "+30초 다시 보기";
+  replayButton.textContent = "+30초 다시 보기";
+  accrualPreviewControl.hidden = isCountdown;
+  countdownPreviewControls.hidden = !isCountdown;
+  for (const button of previewSequenceButtons) {
+    button.setAttribute(
+      "aria-pressed",
+      String(button.dataset.previewSequence === activePreviewSequence),
+    );
+  }
   linkTitle.textContent = isCountdown
     ? "업보 시작 링크 복사"
     : "다 됐으면 이거 복사";
@@ -238,7 +264,10 @@ function updateModeCopy() {
 function render({ reloadPreview = true } = {}) {
   const config = normalizedConfig();
   const liveUrl = buildWidgetUrl(config);
-  currentPreviewUrl = buildWidgetUrl(config, { preview: true });
+  currentPreviewUrl = buildWidgetUrl(config, {
+    preview: true,
+    previewSequence: activePreviewSequence,
+  });
 
   widgetLink.value = liveUrl;
   openLink.href = liveUrl;
@@ -354,6 +383,23 @@ replayButton.addEventListener("click", () => {
   currentPreviewUrl = buildWidgetUrl(normalizedConfig(), { preview: true });
   previewFrame.src = currentPreviewUrl;
 });
+
+for (const button of previewSequenceButtons) {
+  button.addEventListener("click", () => {
+    activePreviewSequence = button.dataset.previewSequence;
+    for (const candidate of previewSequenceButtons) {
+      candidate.setAttribute(
+        "aria-pressed",
+        String(candidate === button),
+      );
+    }
+    currentPreviewUrl = buildWidgetUrl(normalizedConfig(), {
+      preview: true,
+      previewSequence: activePreviewSequence,
+    });
+    previewFrame.src = currentPreviewUrl;
+  });
+}
 
 copyButton.addEventListener("click", async () => {
   clearTimeout(copyStatusTimer);
