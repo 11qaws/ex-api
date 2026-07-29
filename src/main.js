@@ -15,6 +15,7 @@ import {
   formatDurationSeconds,
   getCountdownDisplayPhase,
   getCountdownDurationHighlight,
+  getCountdownResultLabel,
   getCountdownTickDelay,
   getChangedDurationUnits,
   getNextCountdownRefreshAtMs,
@@ -188,7 +189,16 @@ for (const [property, value] of [
 }
 
 followerLabelElement.textContent = config.followerLabel;
-resultLabelElement.textContent = config.resultLabel;
+resultLabelElement.textContent = isCountdownMode
+  ? getCountdownResultLabel({
+      activeLabel: config.resultLabel,
+      phase: getCountdownDisplayPhase({
+        hasEnded: countdownEnded,
+        nowMs: getCountdownNowMs(),
+        startAtMs: runtimeStartAtMs,
+      }).phase,
+    })
+  : config.resultLabel;
 eventLabelElement.textContent = config.eventLabel;
 endLabelElement.textContent = config.endLabel;
 endingClockElement.hidden = !isCountdownMode;
@@ -407,6 +417,10 @@ function renderCountdown({
 
   renderEndingTime(state.endAtMs);
   widget.dataset.countdownState = displayPhase.phase;
+  resultLabelElement.textContent = getCountdownResultLabel({
+    activeLabel: config.resultLabel,
+    phase: displayPhase.phase,
+  });
 
   if (displayPhase.phase === "count-in") {
     renderCountdownAnnouncement(`${displayPhase.cueSeconds}초`);
@@ -438,7 +452,7 @@ function renderCountdown({
   }
 
   if (displayPhase.phase === "waiting") {
-    renderActionCopy(`${config.waitingText} · ${config.actionText}`);
+    renderActionCopy(config.actionText);
   } else if (displayPhase.phase === "running") {
     renderActionCopy(gainActionOverride || config.actionText);
   }

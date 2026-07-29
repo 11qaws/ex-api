@@ -45,7 +45,6 @@ const textParameters = [
   "eventLabel",
   "endLabel",
   "lastChanceText",
-  "waitingText",
   "startPreviewText",
   "startText",
   "endedText",
@@ -58,7 +57,6 @@ const modeTextParameters = [
   "eventLabel",
   "endLabel",
   "lastChanceText",
-  "waitingText",
   "startPreviewText",
   "startText",
   "endedText",
@@ -89,7 +87,6 @@ const modeDefaults = {
     lastChanceText: DEFAULT_COUNTDOWN_COPY.lastChanceText,
     startPreviewText: DEFAULT_COUNTDOWN_COPY.startPreviewText,
     startText: DEFAULT_COUNTDOWN_COPY.startText,
-    waitingText: DEFAULT_COUNTDOWN_COPY.waitingText,
   },
   countdown: DEFAULT_COUNTDOWN_COPY,
 };
@@ -242,7 +239,7 @@ function updatePreviewScale(config) {
 function updateModeCopy() {
   const isCountdown = activeMode === "countdown";
   previewTitle.textContent = isCountdown
-    ? "업보가 이렇게 이어짐"
+    ? "운동이 이렇게 이어짐"
     : "지금 이렇게 나감";
   replayButton.textContent = "+30초 다시 보기";
   accrualPreviewControl.hidden = isCountdown;
@@ -254,7 +251,7 @@ function updateModeCopy() {
     );
   }
   linkTitle.textContent = isCountdown
-    ? "업보 시작 링크 복사"
+    ? "운동 시작 링크 복사"
     : "다 됐으면 이거 복사";
   linkDescription.textContent = isCountdown
     ? "시작 시각이 URL에 들어갑니다. OBS 브라우저 소스 크기도 위 값과 똑같이 설정하세요."

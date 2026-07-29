@@ -27,7 +27,7 @@ export const DEFAULT_COUNTDOWN_COPY = Object.freeze({
   endLabel: "이대로면",
   endedText: "링피트 종료",
   lastChanceText: "끝난줄?",
-  resultLabel: "업보",
+  resultLabel: "운동",
   startPreviewText: "준비중 >> 링피트",
   startText: "링피트 시작!!",
   waitingText: "시작 전",
@@ -178,6 +178,15 @@ export function getCountdownDurationHighlight({
     return highlightGain ? "gain" : "steady";
   }
   return "none";
+}
+
+export function getCountdownResultLabel({
+  activeLabel = DEFAULT_COUNTDOWN_COPY.resultLabel,
+  phase,
+}) {
+  return phase === "waiting" || phase === "count-in"
+    ? DEFAULT_COPY.resultLabel
+    : activeLabel;
 }
 
 export function getCountdownTickDelay({

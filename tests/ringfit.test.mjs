@@ -11,6 +11,7 @@ import {
   formatMinutes,
   getCountdownDisplayPhase,
   getCountdownDurationHighlight,
+  getCountdownResultLabel,
   getNextCountdownRefreshAtMs,
   getCountdownPreviewNowMs,
   getCountdownPreviewStartAtMs,
@@ -84,31 +85,31 @@ test("유리 테마를 기본값으로 사용하고 종이 테마도 URL 옵션�
   assert.equal(parseWidgetConfig("?theme=unknown").theme, "glass");
 });
 
-test("업보 타이머 URL은 시작시각과 모든 상태 문구를 읽는다", () => {
+test("운동 타이머 URL은 시작시각과 모든 상태 문구를 읽는다", () => {
   const config = parseWidgetConfig(
-    "?mode=countdown&startAt=1785646800&session=20260802&waitingText=곧%20시작&startPreviewText=운동%20준비&startText=운동%20시작&lastChanceText=끝난줄&endedText=업보%20청산",
+    "?mode=countdown&startAt=1785646800&session=20260802&waitingText=곧%20시작&startPreviewText=운동%20준비&startText=운동%20시작&lastChanceText=끝난줄&endedText=운동%20완료",
   );
 
   assert.equal(config.mode, "countdown");
   assert.equal(config.startAtMs, 1_785_646_800_000);
   assert.equal(config.sessionId, "20260802");
   assert.equal(config.actionText, "팔로우 누르면 링피트 +30초");
-  assert.equal(config.resultLabel, "업보");
+  assert.equal(config.resultLabel, "운동");
   assert.equal(config.endLabel, "이대로면");
   assert.equal(config.waitingText, "곧 시작");
   assert.equal(config.startPreviewText, "운동 준비");
   assert.equal(config.startText, "운동 시작");
   assert.equal(config.lastChanceText, "끝난줄");
-  assert.equal(config.endedText, "업보 청산");
+  assert.equal(config.endedText, "운동 완료");
 });
 
-test("업보 타이머의 누락 없는 기본 문구를 제공한다", () => {
+test("운동 타이머의 누락 없는 기본 문구를 제공한다", () => {
   const config = parseWidgetConfig("?mode=countdown");
 
   assert.equal(config.followerLabel, "지금 팔로워");
   assert.equal(config.baselineText, "기준 {initial}명부터");
   assert.equal(config.actionText, "팔로우 누르면 링피트 +30초");
-  assert.equal(config.resultLabel, "업보");
+  assert.equal(config.resultLabel, "운동");
   assert.equal(config.eventLabel, "방금 추가");
   assert.equal(config.endLabel, "이대로면");
   assert.equal(config.waitingText, "시작 전");
@@ -119,7 +120,7 @@ test("업보 타이머의 누락 없는 기본 문구를 제공한다", () => {
   assert.equal(config.previewSequence, "start");
 });
 
-test("업보 시작 연출은 -60초부터 시작해 +3초에 정상 타이머로 전환한다", () => {
+test("운동 시작 연출은 -60초부터 시작해 +3초에 정상 타이머로 전환한다", () => {
   const startAtMs = 100_000;
 
   assert.deepEqual(
@@ -186,6 +187,25 @@ test("업보 시작 연출은 -60초부터 시작해 +3초에 정상 타이머�
       startAtMs,
     }),
     { cueSeconds: null, phase: "ended" },
+  );
+});
+
+test("시작 전에는 적립, 시작 후에는 운동 라벨을 사용한다", () => {
+  assert.equal(
+    getCountdownResultLabel({ activeLabel: "운동", phase: "waiting" }),
+    "적립",
+  );
+  assert.equal(
+    getCountdownResultLabel({ activeLabel: "운동", phase: "count-in" }),
+    "적립",
+  );
+  assert.equal(
+    getCountdownResultLabel({ activeLabel: "운동", phase: "starting" }),
+    "운동",
+  );
+  assert.equal(
+    getCountdownResultLabel({ activeLabel: "운동", phase: "running" }),
+    "운동",
   );
 });
 
@@ -277,7 +297,7 @@ test("종료 30초 안에서는 지정된 남은시간에만 추가 조회한다
   }
 });
 
-test("업보 시작 전에도 다음 정각 초 경계에 맞춰 갱신한다", () => {
+test("운동 시작 전에도 다음 정각 초 경계에 맞춰 갱신한다", () => {
   const startAtMs = 100_000;
 
   assert.equal(
@@ -382,7 +402,7 @@ test("미리보기 종료시각은 시작 :00에서 팔로워마다 정확히 30
   assert.equal(afterGain.endAtMs - beforeGain.endAtMs, 30_000);
 });
 
-test("업보 시작 미리보기의 가상 시계는 시작시각 60초 전부터 흐른다", () => {
+test("운동 시작 미리보기의 가상 시계는 시작시각 60초 전부터 흐른다", () => {
   const startAtMs = Date.UTC(2026, 6, 29, 11, 40, 0);
   const loadedAtMs = 10_000;
 
@@ -412,7 +432,7 @@ test("업보 시작 미리보기의 가상 시계는 시작시각 60초 전부�
   );
 });
 
-test("업보 미리보기 시퀀스는 시작과 종료만 허용한다", () => {
+test("운동 미리보기 시퀀스는 시작과 종료만 허용한다", () => {
   assert.equal(parseWidgetConfig("?previewSequence=start").previewSequence, "start");
   assert.equal(parseWidgetConfig("?previewSequence=end").previewSequence, "end");
   assert.equal(

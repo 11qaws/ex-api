@@ -1,7 +1,7 @@
 # ex-api
 
 치지직 팔로워 증가량을 일요일 링피트 시간으로 환산해 보여 주는 OBS용 위젯과
-예약 시각부터 업보시간을 차감하는 카운트다운 위젯, 위젯 링크 편집기입니다.
+예약 시각부터 운동시간을 차감하는 카운트다운 위젯, 위젯 링크 편집기입니다.
 
 - 위젯: <https://11qaws.github.io/ex-api/>
 - 편집기: <https://11qaws.github.io/ex-api/editor/>
@@ -43,8 +43,8 @@ http://localhost:5173/ex-api/editor/
 
 편집기에서 기본 종이 테마와 방송 화면이 비치는 유리 테마를 선택할 수 있으며,
 선택한 테마는 미리보기와 생성되는 OBS 링크에 즉시 반영됩니다.
-`업보 타이머` 탭에서는 한국시간 시작 시각을 지정하고
-`+30초 → 업보시간 → 예상 종료시각` 릴레이 애니메이션을 확인할 수 있습니다.
+`운동 타이머` 탭에서는 한국시간 시작 시각을 지정하고
+`+30초 → 운동시간 → 예상 종료시각` 릴레이 애니메이션을 확인할 수 있습니다.
 
 ## 위젯 URL 옵션
 
@@ -61,20 +61,19 @@ http://localhost:5173/ex-api/editor/
 | `height` | `100` | 위젯 세로 크기(px, 64~1080) |
 | `fontSize` | `48` | 중앙 결과 문장의 기준 글자 크기(px, 24~120) |
 | `theme` | `glass` | 위젯 테마 (`glass` 또는 `paper`) |
-| `mode` | `accrual` | `countdown`이면 예약 시각부터 업보시간 차감 |
+| `mode` | `accrual` | `countdown`이면 예약 시각부터 운동시간 차감 |
 | `startAt` | 없음 | 카운트다운 시작 Unix timestamp(초 또는 밀리초) |
 | `session` | `default` | 최고 팔로워와 종료 상태를 구분하는 게임 이름 |
 | `followerLabel` | `지금 팔로워` | 왼쪽 상단 문구 |
 | `baselineText` | `기준 {initial}명부터` | 왼쪽 하단 문구 (`{initial}` 치환) |
 | `actionText` | `팔로우 눌러서 일요일 링피트` | 중앙 행동 문구 |
-| `resultLabel` | `적립` | 총 적립 시간 앞 문구 |
+| `resultLabel` | `적립`/`운동` | 적립 위젯/운동 타이머의 결과 앞 문구 |
 | `eventLabel` | `방금 추가` | 신규 팔로워 이벤트 문구 |
 | `endLabel` | `이대로면` | 카운트다운 예상 종료시각 앞 문구 |
-| `waitingText` | `시작 전` | 업보 타이머 시작 전 상태 문구 |
 | `startPreviewText` | `준비중 >> 링피트` | T-60부터 표시하는 시작 예고 문구 |
 | `startText` | `링피트 시작!!` | 0초부터 배경과 함께 3초 동안 유지하는 시작 문구 |
 | `lastChanceText` | `끝난줄?` | 남은 5초 이하에서 시간이 추가될 때 표시하는 문구 |
-| `endedText` | `링피트 종료` | 업보 타이머가 0초가 된 뒤 문구 |
+| `endedText` | `링피트 종료` | 운동 타이머가 0초가 된 뒤 문구 |
 
 위치별 글자 크기는 `followerLabelSize`, `followerCountSize`, `baselineSize`,
 `actionSize`, `totalSize`, `eventLabelSize`, `eventValueSize`로 조절할 수 있습니다.
@@ -87,11 +86,11 @@ http://localhost:5173/ex-api/editor/
 https://11qaws.github.io/ex-api/?width=1600&height=140&fontSize=72
 ```
 
-업보 타이머는 다음 식으로 매초 다시 계산하므로 OBS 비활성화나 새로고침 뒤에도
+운동 타이머는 다음 식으로 매초 다시 계산하므로 OBS 비활성화나 새로고침 뒤에도
 실제 시각과 맞습니다.
 
 ```text
-예상 종료시각 = startAt + (최고 팔로워 - initial) × 1명당 업보시간
+예상 종료시각 = startAt + (최고 팔로워 - initial) × 1명당 운동시간
 남은시간 = max(예상 종료시각 - 현재시각, 0)
 ```
 
