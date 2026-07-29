@@ -11,7 +11,9 @@ import {
   formatClockTime,
   formatDurationParts,
   formatDurationSeconds,
+  getCountdownDisplayPhase,
   getCountdownPreviewNowMs,
+  getCountdownTickDelay,
   getChangedDurationUnits,
   parseWidgetConfig,
 } from "./ringfit.js";
@@ -178,6 +180,7 @@ function createDurationUnit(part) {
 }
 
 function renderTotalDuration(totalSeconds, { highlight = "auto" } = {}) {
+  delete totalDurationElement.dataset.announcement;
   const parts = formatDurationParts(totalSeconds);
   const changedUnits = new Set(
     highlight === "gain"
@@ -225,6 +228,21 @@ function renderTotalDuration(totalSeconds, { highlight = "auto" } = {}) {
   previousTotalSeconds = totalSeconds;
 }
 
+function renderCountdownAnnouncement(text) {
+  if (totalDurationElement.dataset.announcement === text) {
+    return;
+  }
+
+  const cue = document.createElement("mark");
+  cue.className = "countdown-start-cue";
+  const cueText = document.createElement("span");
+  cueText.textContent = text;
+  cue.append(cueText);
+  totalDurationElement.replaceChildren(cue);
+  totalDurationElement.dataset.announcement = text;
+  previousTotalSeconds = null;
+}
+
 function renderEndingTime(endAtMs) {
   const nextEndingTime = formatClockTime(endAtMs, {
     referenceTimestampMs: runtimeStartAtMs,
@@ -257,25 +275,37 @@ function renderCountdown({
   nowMs = getCountdownNowMs(),
 } = {}) {
   const state = getCountdownState(nowMs);
+  const displayPhase = getCountdownDisplayPhase({
+    hasEnded: countdownEnded || state.hasEnded,
+    nowMs,
+    startAtMs: runtimeStartAtMs,
+  });
   const remainingSeconds = countdownEnded ? 0 : state.remainingSeconds;
 
-  renderTotalDuration(remainingSeconds, {
-    highlight: highlightGain ? "gain" : "none",
-  });
   renderEndingTime(state.endAtMs);
+  widget.dataset.countdownState = displayPhase.phase;
 
-  if (!state.hasStarted) {
-    widget.dataset.countdownState = "waiting";
+  if (displayPhase.phase === "count-in") {
+    renderCountdownAnnouncement(`${displayPhase.cueSeconds}초`);
+    actionTextElement.textContent = config.actionText;
+  } else if (displayPhase.phase === "starting") {
+    renderCountdownAnnouncement(config.startText);
+    actionTextElement.textContent = config.actionText;
+  } else {
+    renderTotalDuration(remainingSeconds, {
+      highlight: highlightGain ? "gain" : "none",
+    });
+  }
+
+  if (displayPhase.phase === "waiting") {
     actionTextElement.textContent = `${config.waitingText} · ${config.actionText}`;
-  } else if (countdownEnded || state.hasEnded) {
-    widget.dataset.countdownState = "ended";
+  } else if (displayPhase.phase === "ended") {
     actionTextElement.textContent = config.endedText;
     if (!countdownEnded) {
       countdownEnded = true;
       saveCountdownSession();
     }
-  } else {
-    widget.dataset.countdownState = "running";
+  } else if (displayPhase.phase === "running") {
     actionTextElement.textContent = config.actionText;
   }
 }
@@ -497,8 +527,10 @@ function scheduleCountdownTick() {
     return;
   }
 
-  const elapsed = Math.max(0, getCountdownNowMs() - runtimeStartAtMs);
-  const delay = 1000 - (elapsed % 1000) + 24;
+  const delay = getCountdownTickDelay({
+    nowMs: getCountdownNowMs(),
+    startAtMs: runtimeStartAtMs,
+  });
   countdownTimer = window.setTimeout(() => {
     if (
       hasRenderedData &&

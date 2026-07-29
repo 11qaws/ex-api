@@ -36,6 +36,7 @@ const textParameters = [
   "eventLabel",
   "endLabel",
   "waitingText",
+  "startText",
   "endedText",
 ];
 const modeTextParameters = [
@@ -46,6 +47,7 @@ const modeTextParameters = [
   "eventLabel",
   "endLabel",
   "waitingText",
+  "startText",
   "endedText",
 ];
 const fontParameters = [
@@ -71,6 +73,7 @@ const modeDefaults = {
     ...DEFAULT_COPY,
     endLabel: DEFAULT_COUNTDOWN_COPY.endLabel,
     endedText: DEFAULT_COUNTDOWN_COPY.endedText,
+    startText: DEFAULT_COUNTDOWN_COPY.startText,
     waitingText: DEFAULT_COUNTDOWN_COPY.waitingText,
   },
   countdown: DEFAULT_COUNTDOWN_COPY,

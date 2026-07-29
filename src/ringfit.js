@@ -8,6 +8,8 @@ export const DEFAULT_FONT_SIZE = 48;
 export const DEFAULT_WIDGET_THEME = "glass";
 export const DEFAULT_WIDGET_MODE = "accrual";
 export const DEFAULT_COUNTDOWN_PREVIEW_LEAD_SECONDS = 5;
+export const COUNTDOWN_CUE_SECONDS = 3;
+export const COUNTDOWN_START_HOLD_SECONDS = 3;
 export const DEFAULT_COPY = Object.freeze({
   actionText: "팔로우 눌러서 일요일 링피트",
   baselineText: "기준 {initial}명부터",
@@ -21,6 +23,7 @@ export const DEFAULT_COUNTDOWN_COPY = Object.freeze({
   endLabel: "이대로면",
   endedText: "업보 청산",
   resultLabel: "업보",
+  startText: "링피트 시작",
   waitingText: "시작 전",
 });
 
@@ -119,6 +122,47 @@ export function getCountdownPreviewNowMs({
     0,
     safeStartAtMs - safeLeadMs + (safeNowMs - safeLoadedAtMs),
   );
+}
+
+export function getCountdownDisplayPhase({
+  hasEnded = false,
+  nowMs,
+  startAtMs,
+}) {
+  if (hasEnded) {
+    return { cueSeconds: null, phase: "ended" };
+  }
+
+  const safeStartAtMs = Math.max(0, finiteNumber(startAtMs, 0));
+  const safeNowMs = Math.max(0, finiteNumber(nowMs, safeStartAtMs));
+  const deltaMs = safeNowMs - safeStartAtMs;
+
+  if (deltaMs < -COUNTDOWN_CUE_SECONDS * 1000) {
+    return { cueSeconds: null, phase: "waiting" };
+  }
+  if (deltaMs < 0) {
+    return {
+      cueSeconds: Math.floor(deltaMs / 1000),
+      phase: "count-in",
+    };
+  }
+  if (deltaMs < COUNTDOWN_START_HOLD_SECONDS * 1000) {
+    return { cueSeconds: null, phase: "starting" };
+  }
+  return { cueSeconds: null, phase: "running" };
+}
+
+export function getCountdownTickDelay({
+  nowMs,
+  startAtMs,
+  paddingMs = 24,
+}) {
+  const safeStartAtMs = Math.max(0, finiteNumber(startAtMs, 0));
+  const safeNowMs = Math.max(0, finiteNumber(nowMs, safeStartAtMs));
+  const offsetMs = safeNowMs - safeStartAtMs;
+  const remainderMs = ((offsetMs % 1000) + 1000) % 1000;
+
+  return 1000 - remainderMs + Math.max(0, finiteNumber(paddingMs, 0));
 }
 
 export function parseWidgetConfig(search = "") {
@@ -290,6 +334,11 @@ export function parseWidgetConfig(search = "") {
     sessionId: boundedText(params.get("session"), "default", 48).replace(
       /[^\p{L}\p{N}._-]/gu,
       "-",
+    ),
+    startText: boundedText(
+      params.get("startText"),
+      DEFAULT_COUNTDOWN_COPY.startText,
+      20,
     ),
     startAtMs: timestampMilliseconds(params.get("startAt")),
     theme,

@@ -49,6 +49,32 @@
   font-size: 1.06em;
 }
 
+.ringfit-widget[data-mode="countdown"][data-countdown-state="count-in"]
+  [data-result-label],
+.ringfit-widget[data-mode="countdown"][data-countdown-state="starting"]
+  [data-result-label] {
+  display: none;
+}
+
+.ringfit-widget[data-mode="countdown"] .countdown-start-cue {
+  margin-left: 0;
+  letter-spacing: -0.045em;
+}
+
+.ringfit-widget[data-mode="countdown"][data-countdown-state="count-in"]
+  .countdown-start-cue {
+  font-size: 1.08em;
+}
+
+.ringfit-widget[data-mode="countdown"][data-countdown-state="starting"]
+  .countdown-start-cue {
+  font-size: 0.86em;
+}
+
+.ringfit-widget[data-mode="countdown"] .countdown-start-cue::before {
+  animation: countdown-cue-fill 260ms cubic-bezier(0.18, 0.8, 0.25, 1) both;
+}
+
 .ending-clock {
   position: relative;
   z-index: 2;
@@ -347,6 +373,18 @@
   }
 }
 
+@keyframes countdown-cue-fill {
+  0% {
+    opacity: 0.35;
+    transform: scaleX(0);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
 @media (max-width: 640px) {
   .ringfit-widget[data-mode="countdown"] .total-metric {
     padding-right: 10px;
@@ -374,6 +412,7 @@
   .ringfit-widget[data-mode="countdown"] .ending-clock::after,
   .ringfit-widget[data-mode="countdown"] .ending-time-current,
   .ringfit-widget[data-mode="countdown"] .ending-time-previous,
+  .ringfit-widget[data-mode="countdown"] .countdown-start-cue::before,
   .ringfit-widget[data-mode="countdown"] .duration-unit {
     animation: none !important;
   }

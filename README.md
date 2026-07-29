@@ -71,6 +71,7 @@ http://localhost:5173/ex-api/editor/
 | `eventLabel` | `방금 추가` | 신규 팔로워 이벤트 문구 |
 | `endLabel` | `이대로면` | 카운트다운 예상 종료시각 앞 문구 |
 | `waitingText` | `시작 전` | 업보 타이머 시작 전 상태 문구 |
+| `startText` | `링피트 시작` | 0초부터 3초 동안 표시하는 시작 문구 |
 | `endedText` | `업보 청산` | 업보 타이머가 0초가 된 뒤 문구 |
 
 위치별 글자 크기는 `followerLabelSize`, `followerCountSize`, `baselineSize`,

@@ -9,8 +9,10 @@ import {
   formatDurationSeconds,
   formatDurationParts,
   formatMinutes,
+  getCountdownDisplayPhase,
   getCountdownPreviewNowMs,
   getCountdownPreviewStartAtMs,
+  getCountdownTickDelay,
   getChangedDurationUnits,
   parseWidgetConfig,
 } from "../src/ringfit.js";
@@ -81,7 +83,7 @@ test("유리 테마를 기본값으로 사용하고 종이 테마도 URL 옵션�
 
 test("업보 타이머 URL은 시작시각과 모든 상태 문구를 읽는다", () => {
   const config = parseWidgetConfig(
-    "?mode=countdown&startAt=1785646800&session=20260802&waitingText=곧%20시작&endedText=업보%20청산",
+    "?mode=countdown&startAt=1785646800&session=20260802&waitingText=곧%20시작&startText=운동%20시작&endedText=업보%20청산",
   );
 
   assert.equal(config.mode, "countdown");
@@ -91,6 +93,7 @@ test("업보 타이머 URL은 시작시각과 모든 상태 문구를 읽는다"
   assert.equal(config.resultLabel, "업보");
   assert.equal(config.endLabel, "이대로면");
   assert.equal(config.waitingText, "곧 시작");
+  assert.equal(config.startText, "운동 시작");
   assert.equal(config.endedText, "업보 청산");
 });
 
@@ -104,7 +107,68 @@ test("업보 타이머의 누락 없는 기본 문구를 제공한다", () => {
   assert.equal(config.eventLabel, "방금 추가");
   assert.equal(config.endLabel, "이대로면");
   assert.equal(config.waitingText, "시작 전");
+  assert.equal(config.startText, "링피트 시작");
   assert.equal(config.endedText, "업보 청산");
+});
+
+test("업보 시작 연출은 -3초부터 시작해 +3초에 정상 타이머로 전환한다", () => {
+  const startAtMs = 100_000;
+
+  assert.deepEqual(
+    getCountdownDisplayPhase({ nowMs: startAtMs - 4_000, startAtMs }),
+    { cueSeconds: null, phase: "waiting" },
+  );
+  assert.deepEqual(
+    getCountdownDisplayPhase({ nowMs: startAtMs - 3_000, startAtMs }),
+    { cueSeconds: -3, phase: "count-in" },
+  );
+  assert.deepEqual(
+    getCountdownDisplayPhase({ nowMs: startAtMs - 2_000, startAtMs }),
+    { cueSeconds: -2, phase: "count-in" },
+  );
+  assert.deepEqual(
+    getCountdownDisplayPhase({ nowMs: startAtMs - 1_000, startAtMs }),
+    { cueSeconds: -1, phase: "count-in" },
+  );
+  assert.deepEqual(
+    getCountdownDisplayPhase({ nowMs: startAtMs, startAtMs }),
+    { cueSeconds: null, phase: "starting" },
+  );
+  assert.deepEqual(
+    getCountdownDisplayPhase({ nowMs: startAtMs + 2_999, startAtMs }),
+    { cueSeconds: null, phase: "starting" },
+  );
+  assert.deepEqual(
+    getCountdownDisplayPhase({ nowMs: startAtMs + 3_000, startAtMs }),
+    { cueSeconds: null, phase: "running" },
+  );
+  assert.deepEqual(
+    getCountdownDisplayPhase({
+      hasEnded: true,
+      nowMs: startAtMs + 3_000,
+      startAtMs,
+    }),
+    { cueSeconds: null, phase: "ended" },
+  );
+});
+
+test("업보 시작 전에도 다음 정각 초 경계에 맞춰 갱신한다", () => {
+  const startAtMs = 100_000;
+
+  assert.equal(
+    getCountdownTickDelay({
+      nowMs: startAtMs - 3_350,
+      startAtMs,
+    }),
+    374,
+  );
+  assert.equal(
+    getCountdownTickDelay({
+      nowMs: startAtMs + 1_350,
+      startAtMs,
+    }),
+    674,
+  );
 });
 
 test("알 수 없는 모드는 기존 적립 위젯으로 되돌린다", () => {
