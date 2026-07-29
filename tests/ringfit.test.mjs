@@ -85,9 +85,9 @@ test("업보 타이머 URL은 시작시각과 모든 상태 문구를 읽는다"
   assert.equal(config.mode, "countdown");
   assert.equal(config.startAtMs, 1_785_646_800_000);
   assert.equal(config.sessionId, "20260802");
-  assert.equal(config.actionText, "팔로우 누르면 링피트 +30초;;");
-  assert.equal(config.resultLabel, "남은");
-  assert.equal(config.endLabel, "끝");
+  assert.equal(config.actionText, "팔로우 누르면 링피트 +30초");
+  assert.equal(config.resultLabel, "업보");
+  assert.equal(config.endLabel, "이대로면");
   assert.equal(config.waitingText, "곧 시작");
   assert.equal(config.endedText, "업보 청산");
 });
@@ -97,12 +97,12 @@ test("업보 타이머의 누락 없는 기본 문구를 제공한다", () => {
 
   assert.equal(config.followerLabel, "지금 팔로워");
   assert.equal(config.baselineText, "기준 {initial}명부터");
-  assert.equal(config.actionText, "팔로우 누르면 링피트 +30초;;");
-  assert.equal(config.resultLabel, "남은");
+  assert.equal(config.actionText, "팔로우 누르면 링피트 +30초");
+  assert.equal(config.resultLabel, "업보");
   assert.equal(config.eventLabel, "방금 추가");
-  assert.equal(config.endLabel, "끝");
+  assert.equal(config.endLabel, "이대로면");
   assert.equal(config.waitingText, "시작 전");
-  assert.equal(config.endedText, "0초 ㅋㅋ 살았다");
+  assert.equal(config.endedText, "업보 청산");
 });
 
 test("알 수 없는 모드는 기존 적립 위젯으로 되돌린다", () => {
