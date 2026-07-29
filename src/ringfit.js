@@ -18,7 +18,7 @@ export const DEFAULT_COUNTDOWN_COPY = Object.freeze({
   ...DEFAULT_COPY,
   actionText: "팔로우 누르면 링피트 +30초",
   endLabel: "이대로면",
-  endedText: "",
+  endedText: "업보 청산",
   resultLabel: "이제",
   waitingText: "시작 전",
 });
