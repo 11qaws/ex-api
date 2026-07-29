@@ -16,10 +16,10 @@ export const DEFAULT_COPY = Object.freeze({
 });
 export const DEFAULT_COUNTDOWN_COPY = Object.freeze({
   ...DEFAULT_COPY,
-  actionText: "팔로우 누르면 링피트 +30초;;",
-  endLabel: "끝",
-  endedText: "0초 ㅋㅋ 살았다",
-  resultLabel: "남은",
+  actionText: "팔로우 누르면 링피트 +30초",
+  endLabel: "이대로면",
+  endedText: "",
+  resultLabel: "이제",
   waitingText: "시작 전",
 });
 
