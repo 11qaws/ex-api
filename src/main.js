@@ -246,10 +246,10 @@ function renderCountdown({ highlightGain = false, nowMs = Date.now() } = {}) {
 
   if (!state.hasStarted) {
     widget.dataset.countdownState = "waiting";
-    actionTextElement.textContent = config.actionText;
+    actionTextElement.textContent = `${config.waitingText} · ${config.actionText}`;
   } else if (countdownEnded || state.hasEnded) {
     widget.dataset.countdownState = "ended";
-    actionTextElement.textContent = "0초 ㅋㅋ 살았다";
+    actionTextElement.textContent = config.endedText;
     if (!countdownEnded) {
       countdownEnded = true;
       saveCountdownSession();

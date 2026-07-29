@@ -38,7 +38,7 @@
         aria-selected="false"
       >
         <span>02</span>
-        벌칙 타이머
+        업보 타이머
       </button>
     </nav>
 
@@ -116,6 +116,32 @@
                 maxlength="12"
               />
             </label>
+            <label
+              class="field"
+              data-mode-only="countdown"
+              hidden
+            >
+              <span>시작 전 상태 문구</span>
+              <input
+                type="text"
+                name="waitingText"
+                value="시작 전"
+                maxlength="20"
+              />
+            </label>
+            <label
+              class="field"
+              data-mode-only="countdown"
+              hidden
+            >
+              <span>0초 종료 문구</span>
+              <input
+                type="text"
+                name="endedText"
+                value="0초 ㅋㅋ 살았다"
+                maxlength="30"
+              />
+            </label>
           </div>
 
           <div
@@ -124,12 +150,12 @@
             hidden
           >
             <div class="countdown-setup-heading">
-              <b>TIMER</b>
+              <b>UPBO</b>
               <span>여기 적은 시각부터 자동으로 줄어듦</span>
             </div>
             <div class="field-grid">
               <label class="field field-wide">
-                <span>벌칙 시작 시각 <small>한국시간</small></span>
+                <span>업보 시작 시각 <small>한국시간</small></span>
                 <input
                   type="datetime-local"
                   name="startAt"

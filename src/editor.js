@@ -34,6 +34,8 @@ const textParameters = [
   "resultLabel",
   "eventLabel",
   "endLabel",
+  "waitingText",
+  "endedText",
 ];
 const modeTextParameters = [
   "followerLabel",
@@ -42,6 +44,8 @@ const modeTextParameters = [
   "resultLabel",
   "eventLabel",
   "endLabel",
+  "waitingText",
+  "endedText",
 ];
 const fontParameters = [
   "followerLabelSize",
@@ -65,6 +69,8 @@ const modeDefaults = {
   accrual: {
     ...DEFAULT_COPY,
     endLabel: "끝",
+    endedText: DEFAULT_COUNTDOWN_COPY.endedText,
+    waitingText: DEFAULT_COUNTDOWN_COPY.waitingText,
   },
   countdown: DEFAULT_COUNTDOWN_COPY,
 };
@@ -210,13 +216,13 @@ function updatePreviewScale(config) {
 function updateModeCopy() {
   const isCountdown = activeMode === "countdown";
   previewTitle.textContent = isCountdown
-    ? "세 단계가 이렇게 이어짐"
+    ? "업보가 이렇게 이어짐"
     : "지금 이렇게 나감";
   replayButton.textContent = isCountdown
     ? "+30초 릴레이 다시 보기"
     : "+30초 다시 보기";
   linkTitle.textContent = isCountdown
-    ? "예약 시작 링크 복사"
+    ? "업보 시작 링크 복사"
     : "다 됐으면 이거 복사";
   linkDescription.textContent = isCountdown
     ? "시작 시각이 URL에 들어갑니다. OBS 브라우저 소스 크기도 위 값과 똑같이 설정하세요."

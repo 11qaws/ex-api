@@ -260,6 +260,10 @@ a {
   color: var(--orange-deep);
 }
 
+[data-mode-only][hidden] {
+  display: none !important;
+}
+
 .countdown-setup {
   margin-top: 20px;
   padding: 15px 14px 14px;

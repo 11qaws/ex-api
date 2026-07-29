@@ -18,7 +18,9 @@ export const DEFAULT_COUNTDOWN_COPY = Object.freeze({
   ...DEFAULT_COPY,
   actionText: "팔로우 누르면 링피트 +30초;;",
   endLabel: "끝",
+  endedText: "0초 ㅋㅋ 살았다",
   resultLabel: "남은",
+  waitingText: "시작 전",
 });
 
 const FONT_RATIOS = Object.freeze({
@@ -224,6 +226,11 @@ export function parseWidgetConfig(search = "") {
       DEFAULT_COUNTDOWN_COPY.endLabel,
       12,
     ),
+    endedText: boundedText(
+      params.get("endedText"),
+      DEFAULT_COUNTDOWN_COPY.endedText,
+      30,
+    ),
     eventLabel: boundedText(
       params.get("eventLabel"),
       defaultCopy.eventLabel,
@@ -257,6 +264,11 @@ export function parseWidgetConfig(search = "") {
     startAtMs: timestampMilliseconds(params.get("startAt")),
     theme,
     totalSize,
+    waitingText: boundedText(
+      params.get("waitingText"),
+      DEFAULT_COUNTDOWN_COPY.waitingText,
+      20,
+    ),
     widgetHeight,
     widgetWidth,
   };

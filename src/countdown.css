@@ -198,11 +198,6 @@
   animation: countdown-tick 170ms ease-out both;
 }
 
-.ringfit-widget[data-mode="countdown"][data-countdown-state="waiting"]
-  .action-copy::before {
-  content: "시작 전 · ";
-}
-
 .ringfit-widget[data-mode="countdown"][data-countdown-state="ended"]
   .total-copy {
   color: var(--orange-dark);
