@@ -177,6 +177,9 @@ export function getCountdownDurationHighlight({
   if (phase === "running") {
     return highlightGain ? "gain" : "steady";
   }
+  if (phase === "waiting") {
+    return "steady";
+  }
   return "none";
 }
 

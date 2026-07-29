@@ -209,7 +209,14 @@ test("시작 전에는 적립, 시작 후에는 운동 라벨을 사용한다", 
   );
 });
 
-test("진행 중 타이머 배경은 유지하고 시간 추가 때만 다시 그린다", () => {
+test("시작 대기와 진행 중에는 배경을 유지하고 시간 추가 때만 다시 그린다", () => {
+  assert.equal(
+    getCountdownDurationHighlight({
+      highlightGain: false,
+      phase: "waiting",
+    }),
+    "steady",
+  );
   assert.equal(
     getCountdownDurationHighlight({
       highlightGain: false,
