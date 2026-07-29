@@ -116,7 +116,7 @@ test("운동 타이머의 누락 없는 기본 문구를 제공한다", () => {
   assert.equal(config.startPreviewText, "준비중 >> 링피트");
   assert.equal(config.startText, "링피트 시작!!");
   assert.equal(config.lastChanceText, "끝난줄?");
-  assert.equal(config.endedText, "링피트 종료");
+  assert.equal(config.endedText, "!!! 링피트 완주 !!!");
   assert.equal(config.previewSequence, "start");
 });
 

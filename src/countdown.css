@@ -101,7 +101,7 @@
 
 .ringfit-widget[data-mode="countdown"][data-countdown-state="ended"]
   .countdown-start-cue {
-  font-size: 0.86em;
+  font-size: 0.78em;
 }
 
 .ringfit-widget[data-mode="countdown"][data-countdown-state="final-check"]
@@ -271,7 +271,47 @@
 
 .ringfit-widget[data-mode="countdown"][data-countdown-state="ended"]
   .total-copy {
+  display: flex;
+  height: 100%;
+  overflow: visible;
+  align-items: center;
   color: var(--orange-dark);
+  justify-content: center;
+  transform: none;
+}
+
+.ringfit-widget[data-mode="countdown"][data-countdown-state="ended"]
+  .total-metric {
+  padding-right: 15px;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 10px;
+}
+
+.ringfit-widget[data-mode="countdown"][data-countdown-state="ended"]
+  .action-copy {
+  display: none;
+}
+
+.ringfit-widget[data-mode="countdown"][data-countdown-state="ended"]
+  .result-row {
+  height: 100%;
+  margin-top: 0;
+  align-items: stretch;
+}
+
+.ringfit-widget[data-mode="countdown"][data-countdown-state="ended"]
+  .total-duration {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.ringfit-widget[data-mode="countdown"][data-countdown-state="ended"]
+  .countdown-ended-cue {
+  margin: 0;
+  transform: none;
 }
 
 .ringfit-widget[data-theme="glass"] .ending-clock {
