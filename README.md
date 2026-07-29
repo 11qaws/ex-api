@@ -74,7 +74,7 @@ http://localhost:5173/ex-api/editor/
 | `startPreviewText` | `준비중 >> 링피트` | T-60부터 표시하는 시작 예고 문구 |
 | `startText` | `링피트 시작!!` | 0초부터 배경과 함께 3초 동안 유지하는 시작 문구 |
 | `lastChanceText` | `끝난줄?` | 남은 5초 이하에서 시간이 추가될 때 표시하는 문구 |
-| `endedText` | `업보 청산` | 업보 타이머가 0초가 된 뒤 문구 |
+| `endedText` | `링피트 종료` | 업보 타이머가 0초가 된 뒤 문구 |
 
 위치별 글자 크기는 `followerLabelSize`, `followerCountSize`, `baselineSize`,
 `actionSize`, `totalSize`, `eventLabelSize`, `eventValueSize`로 조절할 수 있습니다.
