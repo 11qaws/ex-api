@@ -15,7 +15,6 @@ const previewFrame = document.querySelector("[data-preview-frame]");
 const previewViewport = document.querySelector("[data-preview-viewport]");
 const previewCanvas = document.querySelector("[data-preview-canvas]");
 const previewSize = document.querySelector("[data-preview-size]");
-const previewTitle = document.querySelector("[data-preview-title]");
 const widgetLink = document.querySelector("[data-widget-link]");
 const openLink = document.querySelector("[data-open-link]");
 const copyStatus = document.querySelector("[data-copy-status]");
@@ -30,12 +29,20 @@ const previewSequenceButtons = [
   ...document.querySelectorAll("[data-preview-sequence]"),
 ];
 const copyButton = document.querySelector("[data-copy-link]");
-const themeStamp = document.querySelector("[data-theme-stamp]");
-const linkTitle = document.querySelector("[data-link-title]");
-const linkDescription = document.querySelector("[data-link-description]");
 const modeTabs = [...document.querySelectorAll("[data-mode-tab]")];
 const modeOnlyElements = [...document.querySelectorAll("[data-mode-only]")];
+const startDisplay = document.querySelector("[data-start-display]");
+const startWarning = document.querySelector("[data-start-warning]");
+const startDateButtons = [...document.querySelectorAll("[data-start-date]")];
+const startShiftButtons = [...document.querySelectorAll("[data-start-shift]")];
+const fontSizeReadout = document.querySelector("[data-font-size-readout]");
 const widgetBaseUrl = new URL("../", window.location.href);
+
+const KOREA_OFFSET_MS = 9 * 60 * 60 * 1000;
+const MINUTE_MS = 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
+const DEFAULT_START_HOUR = 14;
+const WEEKDAY_NAMES = ["일", "월", "화", "수", "목", "금", "토"];
 
 const textParameters = [
   "followerLabel",
@@ -49,18 +56,7 @@ const textParameters = [
   "startText",
   "endedText",
 ];
-const modeTextParameters = [
-  "followerLabel",
-  "baselineText",
-  "actionText",
-  "resultLabel",
-  "eventLabel",
-  "endLabel",
-  "lastChanceText",
-  "startPreviewText",
-  "startText",
-  "endedText",
-];
+const modeTextParameters = [...textParameters];
 const fontParameters = [
   "followerLabelSize",
   "followerCountSize",
@@ -128,9 +124,96 @@ function parseKoreaDateTime(value) {
       Number(hour),
       Number(minute),
       Number(second),
-    ) -
-    9 * 60 * 60 * 1000
+    ) - KOREA_OFFSET_MS
   );
+}
+
+// Korea-shifted calendar fields, so date maths never depends on the browser
+// timezone. Start times are always read as Asia/Seoul.
+function koreaParts(timestampMs) {
+  const shifted = new Date(timestampMs + KOREA_OFFSET_MS);
+  return {
+    year: shifted.getUTCFullYear(),
+    month: shifted.getUTCMonth() + 1,
+    day: shifted.getUTCDate(),
+    hour: shifted.getUTCHours(),
+    minute: shifted.getUTCMinutes(),
+    weekday: shifted.getUTCDay(),
+  };
+}
+
+function pad(value) {
+  return String(value).padStart(2, "0");
+}
+
+function toStartInputValue(timestampMs) {
+  const { year, month, day, hour, minute } = koreaParts(timestampMs);
+  return `${year}-${pad(month)}-${pad(day)}T${pad(hour)}:${pad(minute)}`;
+}
+
+function formatStartLabel(timestampMs) {
+  const { month, day, hour, minute, weekday } = koreaParts(timestampMs);
+  const meridiem = hour < 12 ? "오전" : "오후";
+  const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+  const weekdayName = WEEKDAY_NAMES[weekday];
+  return `${month}월 ${day}일(${weekdayName}) ${meridiem} ${hour12}:${pad(minute)}`;
+}
+
+function koreaMidnightMs(timestampMs) {
+  return (
+    Math.floor((timestampMs + KOREA_OFFSET_MS) / DAY_MS) * DAY_MS -
+    KOREA_OFFSET_MS
+  );
+}
+
+function defaultStartAtMs(nowMs = Date.now()) {
+  const midnight = koreaMidnightMs(nowMs);
+  const daysToSunday = (7 - koreaParts(nowMs).weekday) % 7;
+  const candidate =
+    midnight + daysToSunday * DAY_MS + DEFAULT_START_HOUR * 60 * MINUTE_MS;
+  return candidate <= nowMs ? candidate + 7 * DAY_MS : candidate;
+}
+
+function startAtMs() {
+  return parseKoreaDateTime(formValue("startAt")) ?? defaultStartAtMs();
+}
+
+function setStartAtMs(timestampMs) {
+  setFormValue("startAt", toStartInputValue(timestampMs));
+}
+
+// The session id groups the peak follower count and finished state of one
+// workout. Deriving it from the start time keeps runs apart without asking the
+// user to invent a name.
+function sessionIdFor(timestampMs) {
+  const { year, month, day, hour, minute } = koreaParts(timestampMs);
+  return `ringfit-${year}${pad(month)}${pad(day)}-${pad(hour)}${pad(minute)}`;
+}
+
+function updateStartDisplay() {
+  const current = startAtMs();
+  startDisplay.textContent = formatStartLabel(current);
+  startWarning.hidden = current > Date.now();
+}
+
+function shiftStartMinutes(deltaMinutes) {
+  setStartAtMs(startAtMs() + deltaMinutes * MINUTE_MS);
+}
+
+function moveStartToDate(target) {
+  const current = startAtMs();
+  const nowMs = Date.now();
+  const timeOfDayMs = current - koreaMidnightMs(current);
+  const todayMidnight = koreaMidnightMs(nowMs);
+
+  let midnight = todayMidnight;
+  if (target === "tomorrow") {
+    midnight = todayMidnight + DAY_MS;
+  } else if (target === "sunday") {
+    midnight = todayMidnight + ((7 - koreaParts(nowMs).weekday) % 7) * DAY_MS;
+  }
+
+  setStartAtMs(midnight + timeOfDayMs);
 }
 
 function normalizedConfig() {
@@ -155,11 +238,9 @@ function normalizedConfig() {
   }
 
   if (activeMode === "countdown") {
-    const startAtMs = parseKoreaDateTime(formValue("startAt"));
-    if (startAtMs !== null) {
-      params.set("startAt", String(Math.trunc(startAtMs / 1000)));
-    }
-    params.set("session", formValue("session"));
+    const current = startAtMs();
+    params.set("startAt", String(Math.trunc(current / 1000)));
+    params.set("session", sessionIdFor(current));
   }
 
   return parseWidgetConfig(params);
@@ -236,12 +317,8 @@ function updatePreviewScale(config) {
   previewFrame.height = String(config.widgetHeight);
 }
 
-function updateModeCopy() {
+function updateModeControls() {
   const isCountdown = activeMode === "countdown";
-  previewTitle.textContent = isCountdown
-    ? "운동이 이렇게 이어짐"
-    : "지금 이렇게 나감";
-  replayButton.textContent = "+30초 다시 보기";
   accrualPreviewControl.hidden = isCountdown;
   countdownPreviewControls.hidden = !isCountdown;
   for (const button of previewSequenceButtons) {
@@ -250,12 +327,6 @@ function updateModeCopy() {
       String(button.dataset.previewSequence === activePreviewSequence),
     );
   }
-  linkTitle.textContent = isCountdown
-    ? "운동 시작 링크 복사"
-    : "다 됐으면 이거 복사";
-  linkDescription.textContent = isCountdown
-    ? "시작 시각이 URL에 들어갑니다. OBS 브라우저 소스 크기도 위 값과 똑같이 설정하세요."
-    : "OBS 브라우저 소스 URL에 붙여넣고, 가로·세로도 위 값과 똑같이 설정하세요.";
 }
 
 function render({ reloadPreview = true } = {}) {
@@ -270,9 +341,9 @@ function render({ reloadPreview = true } = {}) {
   openLink.href = liveUrl;
   previewSize.textContent = `${config.widgetWidth} × ${config.widgetHeight}`;
   previewViewport.dataset.theme = config.theme;
-  themeStamp.textContent =
-    config.theme === "glass" ? "유리 테마 · 뒤가 비침" : "종이 테마";
-  updateModeCopy();
+  fontSizeReadout.textContent = String(config.fontSize);
+  updateModeControls();
+  updateStartDisplay();
   updatePreviewScale(config);
 
   if (reloadPreview) {
@@ -327,10 +398,7 @@ function switchMode(nextMode) {
   }
 
   for (const tab of modeTabs) {
-    tab.setAttribute(
-      "aria-selected",
-      String(tab.dataset.modeTab === activeMode),
-    );
+    tab.setAttribute("aria-pressed", String(tab.dataset.modeTab === activeMode));
   }
   for (const element of modeOnlyElements) {
     element.hidden = element.dataset.modeOnly !== activeMode;
@@ -345,14 +413,8 @@ form.addEventListener("input", (event) => {
     return;
   }
 
-  const mirrorName = input.dataset.mirror;
-  if (mirrorName) {
-    const mirroredInput = form.elements.namedItem(mirrorName);
-    mirroredInput.value = input.value;
-    syncOverallFontSize(input.value);
-  } else if (input.name === "fontSize") {
-    const range = form.querySelector('[data-mirror="fontSize"]');
-    range.value = input.value;
+  if (input.name === "fontSize") {
+    fontSizeReadout.textContent = input.value;
     syncOverallFontSize(input.value);
   }
 
@@ -376,6 +438,20 @@ for (const tab of modeTabs) {
   });
 }
 
+for (const button of startDateButtons) {
+  button.addEventListener("click", () => {
+    moveStartToDate(button.dataset.startDate);
+    render();
+  });
+}
+
+for (const button of startShiftButtons) {
+  button.addEventListener("click", () => {
+    shiftStartMinutes(Number(button.dataset.startShift));
+    render();
+  });
+}
+
 replayButton.addEventListener("click", () => {
   currentPreviewUrl = buildWidgetUrl(normalizedConfig(), { preview: true });
   previewFrame.src = currentPreviewUrl;
@@ -385,10 +461,7 @@ for (const button of previewSequenceButtons) {
   button.addEventListener("click", () => {
     activePreviewSequence = button.dataset.previewSequence;
     for (const candidate of previewSequenceButtons) {
-      candidate.setAttribute(
-        "aria-pressed",
-        String(candidate === button),
-      );
+      candidate.setAttribute("aria-pressed", String(candidate === button));
     }
     currentPreviewUrl = buildWidgetUrl(normalizedConfig(), {
       preview: true,
@@ -426,12 +499,13 @@ resizeObserver.observe(previewViewport);
 if (
   formValue("channelId") !== DEFAULT_CHANNEL_ID ||
   Number(formValue("initial")) !== DEFAULT_INITIAL_FOLLOWERS ||
-  Number(formValue("minutesPerFollower")) !==
-    DEFAULT_MINUTES_PER_FOLLOWER ||
+  Number(formValue("minutesPerFollower")) !== DEFAULT_MINUTES_PER_FOLLOWER ||
   Number(formValue("fontSize")) !== DEFAULT_FONT_SIZE
 ) {
   form.reset();
 }
+
+setStartAtMs(defaultStartAtMs());
 
 for (const element of modeOnlyElements) {
   element.hidden = element.dataset.modeOnly !== activeMode;

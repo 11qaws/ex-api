@@ -5,262 +5,168 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="유레카 치지직 팔로워 링피트 위젯의 문구와 크기를 조절하고 OBS 링크를 만드는 편집기"
+      content="유레카 치지직 팔로워 링피트 위젯의 OBS 링크를 버튼 몇 번으로 만드는 편집기"
     />
     <title>유레카 위젯 편집기</title>
   </head>
   <body>
     <header class="hero">
-      <div>
-        <p class="kicker">EUREKA WIDGET MAKER</p>
-        <h1>팔로우 적립판<br />내 맘대로 뜯어고치기</h1>
-      </div>
-      <p class="hero-note">
-        고치면 바로 보임;;<br />
-        다 됐으면 링크만 OBS에 넣기
-      </p>
+      <h1>OBS에 넣을 위젯 링크 만들기</h1>
     </header>
-
-    <nav class="mode-tabs" aria-label="위젯 종류">
-      <button
-        type="button"
-        class="mode-tab"
-        data-mode-tab="accrual"
-        aria-selected="true"
-      >
-        <span>01</span>
-        팔로우 적립
-      </button>
-      <button
-        type="button"
-        class="mode-tab"
-        data-mode-tab="countdown"
-        aria-selected="false"
-      >
-        <span>02</span>
-        운동 타이머
-      </button>
-    </nav>
 
     <main class="editor-layout">
       <form class="editor-form" data-editor-form>
         <input type="hidden" name="mode" value="accrual" />
-        <span class="form-rail" aria-hidden="true"></span>
 
-        <section class="form-section" aria-labelledby="copy-heading">
-          <div class="section-heading">
-            <span class="step-number">01</span>
-            <div>
-              <h2 id="copy-heading">문구부터 고치기</h2>
-              <p>위젯 위치별 문구를 그대로 입력하세요.</p>
-            </div>
-          </div>
-
-          <div class="field-grid">
-            <label class="field">
-              <span>팔로워 위 작은 글씨</span>
-              <input
-                type="text"
-                name="followerLabel"
-                value="지금 팔로워"
-                maxlength="30"
-              />
-            </label>
-            <label class="field">
-              <span>기준 안내</span>
-              <input
-                type="text"
-                name="baselineText"
-                value="기준 {initial}명부터"
-                maxlength="50"
-              />
-              <small><code>{initial}</code> 자리에 기준 팔로워 수가 들어갑니다.</small>
-            </label>
-            <label class="field field-wide">
-              <span>가운데 행동 문구</span>
-              <input
-                type="text"
-                name="actionText"
-                value="팔로우 눌러서 일요일 링피트"
-                maxlength="60"
-              />
-            </label>
-            <label class="field">
-              <span>결과 앞 글씨</span>
-              <input
-                type="text"
-                name="resultLabel"
-                value="적립"
-                maxlength="20"
-              />
-            </label>
-            <label class="field">
-              <span>주황 띠 작은 글씨</span>
-              <input
-                type="text"
-                name="eventLabel"
-                value="방금 추가"
-                maxlength="20"
-              />
-            </label>
-            <label
-              class="field"
-              data-mode-only="countdown"
-              hidden
+        <section class="step" aria-labelledby="step-kind">
+          <h2 id="step-kind">무엇을 띄울까</h2>
+          <div class="choice-row" role="group" aria-labelledby="step-kind">
+            <button
+              type="button"
+              class="choice"
+              data-mode-tab="accrual"
+              aria-pressed="true"
             >
-              <span>종료 시각 앞 글씨</span>
-              <input
-                type="text"
-                name="endLabel"
-                value="이대로면"
-                maxlength="12"
-              />
-            </label>
-            <label
-              class="field"
-              data-mode-only="countdown"
-              hidden
+              <b>팔로우 적립판</b>
+              <small>팔로워가 늘 때마다 운동시간이 쌓임</small>
+            </button>
+            <button
+              type="button"
+              class="choice"
+              data-mode-tab="countdown"
+              aria-pressed="false"
             >
-              <span>시작 예고 문구</span>
-              <input
-                type="text"
-                name="startPreviewText"
-                value="준비중 >> 링피트"
-                maxlength="30"
-              />
-            </label>
-            <label
-              class="field"
-              data-mode-only="countdown"
-              hidden
-            >
-              <span>시작 순간 문구</span>
-              <input
-                type="text"
-                name="startText"
-                value="링피트 시작!!"
-                maxlength="20"
-              />
-            </label>
-            <label
-              class="field"
-              data-mode-only="countdown"
-              hidden
-            >
-              <span>0초 종료 문구</span>
-              <input
-                type="text"
-                name="endedText"
-                value="!!! 링피트 완주 !!!"
-                maxlength="30"
-              />
-            </label>
-            <label
-              class="field"
-              data-mode-only="countdown"
-              hidden
-            >
-              <span>막판 추가 문구</span>
-              <input
-                type="text"
-                name="lastChanceText"
-                value="끝난줄?"
-                maxlength="20"
-              />
-            </label>
-          </div>
-
-          <div
-            class="countdown-setup"
-            data-mode-only="countdown"
-            hidden
-          >
-            <div class="countdown-setup-heading">
-              <b>RING FIT</b>
-              <span>여기 적은 시각부터 자동으로 줄어듦</span>
-            </div>
-            <div class="field-grid">
-              <label class="field field-wide">
-                <span>운동 시작 시각 <small>한국시간</small></span>
-                <input
-                  type="datetime-local"
-                  name="startAt"
-                  value="2026-08-02T14:00"
-                  step="1"
-                />
-              </label>
-              <label class="field field-wide">
-                <span>게임 구분 이름</span>
-                <input
-                  type="text"
-                  name="session"
-                  value="20260802"
-                  maxlength="48"
-                  spellcheck="false"
-                />
-                <small>같은 이름은 최고 팔로워와 종료 상태를 이어서 씁니다.</small>
-              </label>
-            </div>
+              <b>운동 타이머</b>
+              <small>정한 시각부터 남은 시간이 줄어듦</small>
+            </button>
           </div>
         </section>
 
-        <section class="form-section" aria-labelledby="size-heading">
-          <div class="section-heading">
-            <span class="step-number">02</span>
-            <div>
-              <h2 id="size-heading">테마랑 폼 크기</h2>
-              <p>먼저 생김새를 고르고 OBS 브라우저 소스 크기를 맞추세요.</p>
-            </div>
-          </div>
-
-          <fieldset class="theme-picker">
-            <legend>위젯 테마</legend>
-            <label class="theme-option">
+        <section class="step" aria-labelledby="step-theme">
+          <h2 id="step-theme">어떻게 보일까</h2>
+          <div class="choice-row">
+            <label class="choice theme-option">
               <input type="radio" name="theme" value="paper" />
               <span class="theme-swatch theme-swatch-paper" aria-hidden="true"></span>
-              <span><b>종이</b><small>유레카 기본색</small></span>
+              <b>흰색</b>
+              <small>방송 화면을 가리는 흰 판</small>
             </label>
-            <label class="theme-option">
+            <label class="choice theme-option">
               <input type="radio" name="theme" value="glass" checked />
               <span class="theme-swatch theme-swatch-glass" aria-hidden="true"></span>
-              <span><b>유리</b><small>방송 화면 비침</small></span>
-            </label>
-          </fieldset>
-
-          <div class="size-grid">
-            <label class="number-field">
-              <span>가로</span>
-              <div><input type="number" name="width" value="650" min="480" max="3840" /><b>px</b></div>
-            </label>
-            <label class="number-field">
-              <span>세로</span>
-              <div><input type="number" name="height" value="100" min="64" max="1080" /><b>px</b></div>
-            </label>
-            <label class="number-field">
-              <span>전체 글자</span>
-              <div><input type="number" name="fontSize" value="48" min="24" max="120" /><b>px</b></div>
+              <b>투명</b>
+              <small>뒤에 방송 화면이 비침</small>
             </label>
           </div>
+        </section>
 
-          <label class="range-field">
-            <span>전체 글자 크기</span>
-            <input
-              type="range"
-              data-mirror="fontSize"
-              value="48"
-              min="24"
-              max="120"
-            />
-          </label>
+        <section
+          class="step"
+          data-mode-only="countdown"
+          hidden
+          aria-labelledby="step-start"
+        >
+          <h2 id="step-start">언제 시작할까</h2>
+
+          <p class="start-display">
+            <strong data-start-display>—</strong>
+            <span class="start-warning" data-start-warning hidden>이미 지난 시각</span>
+          </p>
+
+          <div class="button-row" role="group" aria-label="날짜 고르기">
+            <button type="button" class="chip" data-start-date="today">오늘</button>
+            <button type="button" class="chip" data-start-date="tomorrow">내일</button>
+            <button type="button" class="chip" data-start-date="sunday">이번 주 일요일</button>
+          </div>
+
+          <div class="button-row" role="group" aria-label="시각 조절">
+            <button type="button" class="chip" data-start-shift="-60">−1시간</button>
+            <button type="button" class="chip" data-start-shift="-10">−10분</button>
+            <button type="button" class="chip" data-start-shift="10">+10분</button>
+            <button type="button" class="chip" data-start-shift="60">+1시간</button>
+          </div>
+
+          <details class="inline-detail">
+            <summary>직접 입력</summary>
+            <label class="field">
+              <span>운동 시작 시각 <small>한국시간</small></span>
+              <input type="datetime-local" name="startAt" value="" />
+            </label>
+          </details>
         </section>
 
         <details class="advanced">
-          <summary>
-            <span><b>03</b> 위치별 글자 크기</span>
-            <small>필요할 때만 열기</small>
-          </summary>
+          <summary><span>문구 바꾸기</span><small>기본 문구 그대로 써도 됨</small></summary>
           <div class="advanced-body">
-            <p class="advanced-intro">전체 크기로 맞춘 뒤, 튀어나오는 글자만 따로 손보세요.</p>
+            <div class="field-grid">
+              <label class="field">
+                <span>팔로워 위 작은 글씨</span>
+                <input type="text" name="followerLabel" value="지금 팔로워" maxlength="30" />
+              </label>
+              <label class="field">
+                <span>기준 안내</span>
+                <input type="text" name="baselineText" value="기준 {initial}명부터" maxlength="50" />
+                <small><code>{initial}</code> 자리에 기준 팔로워 수가 들어갑니다.</small>
+              </label>
+              <label class="field field-wide">
+                <span>가운데 행동 문구</span>
+                <input type="text" name="actionText" value="팔로우 눌러서 일요일 링피트" maxlength="60" />
+              </label>
+              <label class="field">
+                <span>결과 앞 글씨</span>
+                <input type="text" name="resultLabel" value="적립" maxlength="20" />
+              </label>
+              <label class="field">
+                <span>주황 띠 작은 글씨</span>
+                <input type="text" name="eventLabel" value="방금 추가" maxlength="20" />
+              </label>
+              <label class="field" data-mode-only="countdown" hidden>
+                <span>종료 시각 앞 글씨</span>
+                <input type="text" name="endLabel" value="이대로면" maxlength="12" />
+              </label>
+              <label class="field" data-mode-only="countdown" hidden>
+                <span>시작 예고 문구</span>
+                <input type="text" name="startPreviewText" value="준비중 >> 링피트" maxlength="30" />
+              </label>
+              <label class="field" data-mode-only="countdown" hidden>
+                <span>시작 순간 문구</span>
+                <input type="text" name="startText" value="링피트 시작!!" maxlength="20" />
+              </label>
+              <label class="field" data-mode-only="countdown" hidden>
+                <span>0초 종료 문구</span>
+                <input type="text" name="endedText" value="!!! 링피트 완주 !!!" maxlength="30" />
+              </label>
+              <label class="field" data-mode-only="countdown" hidden>
+                <span>막판 추가 문구</span>
+                <input type="text" name="lastChanceText" value="끝난줄?" maxlength="20" />
+              </label>
+            </div>
+          </div>
+        </details>
+
+        <details class="advanced">
+          <summary><span>크기 맞추기</span><small>OBS 소스 크기와 같게</small></summary>
+          <div class="advanced-body">
+            <div class="size-grid">
+              <label class="number-field">
+                <span>가로</span>
+                <div><input type="number" name="width" value="650" min="480" max="3840" /><b>px</b></div>
+              </label>
+              <label class="number-field">
+                <span>세로</span>
+                <div><input type="number" name="height" value="100" min="64" max="1080" /><b>px</b></div>
+              </label>
+            </div>
+            <label class="range-field">
+              <span>전체 글자 크기 <b data-font-size-readout>48</b>px</span>
+              <input type="range" name="fontSize" value="48" min="24" max="120" />
+            </label>
+          </div>
+        </details>
+
+        <details class="advanced">
+          <summary><span>글자 크기 세밀조정</span><small>튀는 글자만 손보기</small></summary>
+          <div class="advanced-body">
             <div class="font-grid">
               <label class="compact-field"><span>팔로워 라벨</span><input type="number" name="followerLabelSize" value="16" min="10" max="48" /></label>
               <label class="compact-field"><span>팔로워 숫자</span><input type="number" name="followerCountSize" value="52" min="24" max="140" /></label>
@@ -274,42 +180,33 @@
         </details>
 
         <details class="advanced">
-          <summary>
-            <span><b>04</b> 팔로워 계산 설정</span>
-            <small>기본값 그대로 써도 됨</small>
-          </summary>
-          <div class="advanced-body data-grid">
-            <label class="field field-wide">
-              <span>치지직 채널 ID</span>
-              <input
-                type="text"
-                name="channelId"
-                value="3d5546fc8d0dcb478c973a9bc1328980"
-                maxlength="32"
-                spellcheck="false"
-              />
-            </label>
-            <label class="number-field">
-              <span>기준 팔로워</span>
-              <div><input type="number" name="initial" value="1031" min="0" max="1000000000" /><b>명</b></div>
-            </label>
-            <label class="number-field">
-              <span>1명당 적립</span>
-              <div><input type="number" name="minutesPerFollower" value="0.5" min="0" max="1440" step="0.5" /><b>분</b></div>
-            </label>
+          <summary><span>팔로워 계산 설정</span><small>기본값 그대로 써도 됨</small></summary>
+          <div class="advanced-body">
+            <div class="data-grid">
+              <label class="field field-wide">
+                <span>치지직 채널 ID</span>
+                <input
+                  type="text"
+                  name="channelId"
+                  value="3d5546fc8d0dcb478c973a9bc1328980"
+                  maxlength="32"
+                  spellcheck="false"
+                />
+              </label>
+              <label class="number-field">
+                <span>기준 팔로워</span>
+                <div><input type="number" name="initial" value="1031" min="0" max="1000000000" /><b>명</b></div>
+              </label>
+              <label class="number-field">
+                <span>1명당 적립</span>
+                <div><input type="number" name="minutesPerFollower" value="0.5" min="0" max="1440" step="0.5" /><b>분</b></div>
+              </label>
+            </div>
           </div>
         </details>
       </form>
 
       <aside class="output-panel">
-        <div class="preview-heading">
-          <div>
-            <p class="kicker">LIVE PREVIEW</p>
-            <h2 data-preview-title>지금 이렇게 나감</h2>
-          </div>
-          <span class="theme-stamp" data-theme-stamp>유리 테마 · 뒤가 비침</span>
-        </div>
-
         <div class="preview-shell">
           <div class="preview-toolbar">
             <span data-preview-size>650 × 100</span>
@@ -355,9 +252,7 @@
         </div>
 
         <section class="link-maker" aria-labelledby="link-heading">
-          <p class="kicker">OBS WIDGET LINK</p>
-          <h2 id="link-heading" data-link-title>다 됐으면 이거 복사</h2>
-          <p data-link-description>OBS 브라우저 소스 URL에 붙여넣고, 가로·세로도 위 값과 똑같이 설정하세요.</p>
+          <h2 id="link-heading">이 링크를 OBS 브라우저 소스에 붙여넣기</h2>
           <div class="link-row">
             <input type="text" readonly data-widget-link aria-label="생성된 위젯 링크" />
             <button type="button" data-copy-link>링크 복사</button>
