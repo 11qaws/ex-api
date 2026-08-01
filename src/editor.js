@@ -117,7 +117,14 @@ function isFormChecked(name) {
 }
 
 function updateCountdownOptionVisibility() {
-  manualDurationField.hidden = formValue("durationSource") !== "manual";
+  const isManualDuration = formValue("durationSource") === "manual";
+  manualDurationField.hidden = !isManualDuration;
+
+  if (!isManualDuration) {
+    const followerExtension = form.elements.namedItem("followerExtension");
+    followerExtension.checked = true;
+    syncFollowerExtensionCopy();
+  }
 }
 
 function syncFollowerExtensionCopy() {

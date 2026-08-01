@@ -168,13 +168,19 @@ a {
   opacity: 0;
 }
 
-.manual-duration {
-  max-width: 240px;
+.manual-settings {
+  display: grid;
+  max-width: 420px;
   margin-top: var(--gap-group);
+  gap: 10px;
 }
 
-.manual-duration[hidden] {
+.manual-settings[hidden] {
   display: none;
+}
+
+.manual-duration {
+  max-width: 240px;
 }
 
 .theme-swatch {
