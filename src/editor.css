@@ -252,21 +252,48 @@ a {
   background: #d9f2e4;
 }
 
-.inline-detail {
-  margin-top: var(--gap-group);
+/* 접어 두지 않는다. 버튼으로 못 맞추는 시각은 여기서 바로 고친다. */
+.start-exact {
+  display: grid;
+  margin-top: var(--gap-block);
+  padding-top: var(--gap-group);
+  border-top: 1px dashed var(--line);
+  gap: var(--gap-tight);
+  color: #2a5943;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
 }
 
-.inline-detail summary {
-  width: max-content;
+.start-exact small {
+  margin-left: 4px;
   color: var(--muted);
-  cursor: pointer;
   font-family: system-ui, sans-serif;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 500;
 }
 
-.inline-detail[open] summary {
-  margin-bottom: var(--gap-tight);
+.start-exact input {
+  width: 100%;
+  min-width: 0;
+  height: 48px;
+  padding: 0 12px;
+  border: 1px solid rgb(22 76 51 / 24%);
+  border-radius: 5px;
+  outline: none;
+  background: #fffef8;
+  color: var(--green-black);
+  font-family: ui-monospace, "Cascadia Mono", monospace;
+  font-size: 17px;
+  font-weight: 600;
+  transition:
+    border-color 150ms ease-out,
+    box-shadow 150ms ease-out;
+}
+
+.start-exact input:focus {
+  border-color: #319667;
+  box-shadow: 0 0 0 3px rgb(85 200 141 / 20%);
 }
 
 /* ── 입력 필드 ─────────────────────────────────────────── */
