@@ -8,6 +8,10 @@ export const DEFAULT_FONT_SIZE = 48;
 export const DEFAULT_WIDGET_THEME = "glass";
 export const DEFAULT_WIDGET_MODE = "accrual";
 export const DEFAULT_COUNTDOWN_PREVIEW_LEAD_SECONDS = 60;
+export const DEFAULT_COUNTDOWN_DURATION_SOURCE = "followers";
+export const DEFAULT_MANUAL_DURATION_MINUTES = 90;
+export const DEFAULT_FOLLOWER_EXTENSION_ENABLED = true;
+export const DEFAULT_NO_EXTENSION_ACTION_TEXT = "오늘은 +30초 연장 없음;;";
 export const COUNTDOWN_CUE_SECONDS = 60;
 export const COUNTDOWN_START_HOLD_SECONDS = 3;
 export const COUNTDOWN_FIRST_REFRESH_DELAY_SECONDS = 5;
@@ -46,6 +50,7 @@ const FONT_RATIOS = Object.freeze({
 const CHANNEL_ID_PATTERN = /^[a-f0-9]{32}$/i;
 const WIDGET_THEMES = new Set(["glass", "paper"]);
 const WIDGET_MODES = new Set(["accrual", "countdown"]);
+const COUNTDOWN_DURATION_SOURCES = new Set(["followers", "manual"]);
 const COUNTDOWN_PREVIEW_SEQUENCES = new Set(["start", "end"]);
 
 function finiteNumber(value, fallback) {
@@ -100,6 +105,21 @@ function timestampMilliseconds(value) {
 
 export function isValidChannelId(value) {
   return CHANNEL_ID_PATTERN.test(value);
+}
+
+function booleanParameter(value, fallback) {
+  if (value === null || value === undefined || value === "") {
+    return fallback;
+  }
+
+  const normalized = String(value).trim().toLowerCase();
+  if (["1", "true", "on", "yes"].includes(normalized)) {
+    return true;
+  }
+  if (["0", "false", "off", "no"].includes(normalized)) {
+    return false;
+  }
+  return fallback;
 }
 
 export function getCountdownPreviewStartAtMs(nowMs = Date.now()) {
@@ -356,12 +376,31 @@ export function parseWidgetConfig(search = "") {
   )
     ? requestedPreviewSequence
     : "start";
+  const requestedDurationSource =
+    params.get("durationSource") ?? DEFAULT_COUNTDOWN_DURATION_SOURCE;
+  const countdownDurationSource = COUNTDOWN_DURATION_SOURCES.has(
+    requestedDurationSource,
+  )
+    ? requestedDurationSource
+    : DEFAULT_COUNTDOWN_DURATION_SOURCE;
+  const manualDurationMinutes = boundedInteger(
+    params.get("manualMinutes"),
+    DEFAULT_MANUAL_DURATION_MINUTES,
+    1,
+    1440,
+  );
+  const followerExtensionEnabled = booleanParameter(
+    params.get("followerExtension"),
+    DEFAULT_FOLLOWER_EXTENSION_ENABLED,
+  );
 
   return {
     actionSize,
     actionText: boundedText(
       params.get("actionText"),
-      defaultCopy.actionText,
+      mode === "countdown" && !followerExtensionEnabled
+        ? DEFAULT_NO_EXTENSION_ACTION_TEXT
+        : defaultCopy.actionText,
       60,
     ),
     apiBase: params.get("api")?.replace(/\/+$/, "") ?? "",
@@ -372,6 +411,7 @@ export function parseWidgetConfig(search = "") {
       50,
     ),
     channelId,
+    countdownDurationSource,
     endLabel: boundedText(
       params.get("endLabel"),
       DEFAULT_COUNTDOWN_COPY.endLabel,
@@ -396,6 +436,7 @@ export function parseWidgetConfig(search = "") {
       30,
     ),
     followerLabelSize,
+    followerExtensionEnabled,
     fontSize,
     initialFollowers,
     lastChanceText: boundedText(
@@ -403,6 +444,7 @@ export function parseWidgetConfig(search = "") {
       DEFAULT_COUNTDOWN_COPY.lastChanceText,
       20,
     ),
+    manualDurationMinutes,
     minutesPerFollower,
     mode,
     previewEventDelta,
@@ -442,6 +484,9 @@ export function parseWidgetConfig(search = "") {
 }
 
 export function calculateCountdownState({
+  baseDurationSeconds,
+  extensionBaselineFollowers = DEFAULT_INITIAL_FOLLOWERS,
+  followerExtensionEnabled = DEFAULT_FOLLOWER_EXTENSION_ENABLED,
   followerCount,
   initialFollowers = DEFAULT_INITIAL_FOLLOWERS,
   minutesPerFollower = DEFAULT_MINUTES_PER_FOLLOWER,
@@ -450,12 +495,25 @@ export function calculateCountdownState({
 }) {
   const safeNowMs = Math.max(0, finiteNumber(nowMs, Date.now()));
   const safeStartAtMs = Math.max(0, finiteNumber(startAtMs, safeNowMs));
-  const ringFit = calculateRingFit(
-    followerCount,
-    initialFollowers,
-    minutesPerFollower,
-  );
-  const accruedSeconds = Math.round(ringFit.minutes * 60);
+  const hasExplicitBaseDuration = Number.isFinite(Number(baseDurationSeconds));
+  const baseSeconds = hasExplicitBaseDuration
+    ? Math.max(0, Math.round(Number(baseDurationSeconds)))
+    : 0;
+  const extension = hasExplicitBaseDuration
+    ? calculateRingFit(
+        followerCount,
+        extensionBaselineFollowers,
+        minutesPerFollower,
+      )
+    : calculateRingFit(
+        followerCount,
+        initialFollowers,
+        minutesPerFollower,
+      );
+  const accruedSeconds = hasExplicitBaseDuration
+    ? baseSeconds +
+      (followerExtensionEnabled ? Math.round(extension.minutes * 60) : 0)
+    : Math.round(extension.minutes * 60);
   const elapsedSeconds = Math.max(
     0,
     Math.floor((safeNowMs - safeStartAtMs) / 1000),

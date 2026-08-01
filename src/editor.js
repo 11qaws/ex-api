@@ -6,6 +6,7 @@ import {
   DEFAULT_FONT_SIZE,
   DEFAULT_INITIAL_FOLLOWERS,
   DEFAULT_MINUTES_PER_FOLLOWER,
+  DEFAULT_NO_EXTENSION_ACTION_TEXT,
   getCountdownPreviewStartAtMs,
   parseWidgetConfig,
 } from "./ringfit.js";
@@ -36,6 +37,9 @@ const startWarning = document.querySelector("[data-start-warning]");
 const startDateButtons = [...document.querySelectorAll("[data-start-date]")];
 const startShiftButtons = [...document.querySelectorAll("[data-start-shift]")];
 const fontSizeReadout = document.querySelector("[data-font-size-readout]");
+const manualDurationField = document.querySelector(
+  "[data-manual-duration-field]",
+);
 const widgetBaseUrl = new URL("../", window.location.href);
 
 const KOREA_OFFSET_MS = 9 * 60 * 60 * 1000;
@@ -105,6 +109,31 @@ function setFormValue(name, value) {
   const input = form.elements.namedItem(name);
   if (input) {
     input.value = value;
+  }
+}
+
+function isFormChecked(name) {
+  return form.elements.namedItem(name)?.checked ?? false;
+}
+
+function updateCountdownOptionVisibility() {
+  manualDurationField.hidden = formValue("durationSource") !== "manual";
+}
+
+function syncFollowerExtensionCopy() {
+  const actionText = form.elements.namedItem("actionText");
+  if (!actionText || activeMode !== "countdown") {
+    return;
+  }
+
+  const extensionEnabled = isFormChecked("followerExtension");
+  if (!extensionEnabled && actionText.value === DEFAULT_COUNTDOWN_COPY.actionText) {
+    actionText.value = DEFAULT_NO_EXTENSION_ACTION_TEXT;
+  } else if (
+    extensionEnabled &&
+    actionText.value === DEFAULT_NO_EXTENSION_ACTION_TEXT
+  ) {
+    actionText.value = DEFAULT_COUNTDOWN_COPY.actionText;
   }
 }
 
@@ -241,6 +270,12 @@ function normalizedConfig() {
     const current = startAtMs();
     params.set("startAt", String(Math.trunc(current / 1000)));
     params.set("session", sessionIdFor(current));
+    params.set("durationSource", formValue("durationSource"));
+    params.set("manualMinutes", formValue("manualMinutes"));
+    params.set(
+      "followerExtension",
+      isFormChecked("followerExtension") ? "1" : "0",
+    );
   }
 
   return parseWidgetConfig(params);
@@ -274,6 +309,12 @@ function buildWidgetUrl(
       params.set("startAt", String(Math.trunc(config.startAtMs / 1000)));
     }
     params.set("session", config.sessionId);
+    params.set("durationSource", config.countdownDurationSource);
+    params.set("manualMinutes", String(config.manualDurationMinutes));
+    params.set(
+      "followerExtension",
+      config.followerExtensionEnabled ? "1" : "0",
+    );
   }
 
   if (preview) {
@@ -285,7 +326,12 @@ function buildWidgetUrl(
           : config.initialFollowers + 4,
       ),
     );
-    params.set("eventDelta", "1");
+    params.set(
+      "eventDelta",
+      config.mode === "countdown" && !config.followerExtensionEnabled
+        ? "0"
+        : "1",
+    );
     params.set("refresh", config.mode === "countdown" ? "30" : "10");
     if (config.mode === "countdown") {
       // Keep the sample clock on :00 so each follower moves the ending clock
@@ -343,6 +389,7 @@ function render({ reloadPreview = true } = {}) {
   previewViewport.dataset.theme = config.theme;
   fontSizeReadout.textContent = String(config.fontSize);
   updateModeControls();
+  updateCountdownOptionVisibility();
   updateStartDisplay();
   updatePreviewScale(config);
 
@@ -416,6 +463,13 @@ form.addEventListener("input", (event) => {
   if (input.name === "fontSize") {
     fontSizeReadout.textContent = input.value;
     syncOverallFontSize(input.value);
+  }
+
+  if (input.name === "followerExtension") {
+    syncFollowerExtensionCopy();
+  }
+  if (input.name === "durationSource") {
+    updateCountdownOptionVisibility();
   }
 
   scheduleRender();
@@ -510,4 +564,6 @@ setStartAtMs(defaultStartAtMs());
 for (const element of modeOnlyElements) {
   element.hidden = element.dataset.modeOnly !== activeMode;
 }
+
+updateCountdownOptionVisibility();
 render();

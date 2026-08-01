@@ -62,7 +62,7 @@ const previewPreviousFollowers =
         config.initialFollowers,
         config.previewFollowers - config.previewEventDelta,
       );
-const previewAccruedSeconds =
+const previewFollowerSeconds =
   previewPreviousFollowers === null
     ? 0
     : Math.round(
@@ -72,6 +72,30 @@ const previewAccruedSeconds =
           config.minutesPerFollower,
         ).minutes * 60,
       );
+const previewBaseDurationSeconds =
+  config.countdownDurationSource === "manual"
+    ? config.manualDurationMinutes * 60
+    : config.followerExtensionEnabled
+      ? 0
+      : previewFollowerSeconds;
+const previewExtensionBaselineFollowers =
+  config.countdownDurationSource === "manual" ||
+  !config.followerExtensionEnabled
+    ? previewPreviousFollowers
+    : config.initialFollowers;
+const previewAccruedSeconds =
+  previewPreviousFollowers === null
+    ? 0
+    : previewBaseDurationSeconds +
+      (config.followerExtensionEnabled
+        ? calculateIncrementSeconds(
+            Math.max(
+              0,
+              previewPreviousFollowers - previewExtensionBaselineFollowers,
+            ),
+            config.minutesPerFollower,
+          )
+        : 0);
 const countdownPreviewBaseNowMs =
   config.previewSequence === "end"
     ? runtimeStartAtMs +
@@ -83,6 +107,9 @@ const countdownStorageKey = [
   config.channelId,
   config.sessionId,
   runtimeStartAtMs,
+  config.countdownDurationSource,
+  config.manualDurationMinutes,
+  config.followerExtensionEnabled ? "extend" : "fixed",
 ].join(":");
 
 let refreshTimer;
@@ -107,6 +134,8 @@ let finalCheckRequestPending = false;
 let gainActionOverride = "";
 let lastCountdownCheckpointKey = "";
 let pendingCountdownFollowerCount = null;
+let countdownBaseFollowerCount = null;
+let countdownBaseDurationSeconds = null;
 
 function getCountdownNowMs() {
   if (!isCountdownPreview) {
@@ -132,6 +161,12 @@ function loadCountdownSession() {
         Math.trunc(saved.highestFollowerCount),
       );
       countdownEnded = Boolean(saved.ended);
+      countdownBaseFollowerCount = Number.isFinite(saved.baseFollowerCount)
+        ? Math.max(0, Math.trunc(saved.baseFollowerCount))
+        : null;
+      countdownBaseDurationSeconds = Number.isFinite(saved.baseDurationSeconds)
+        ? Math.max(0, Math.trunc(saved.baseDurationSeconds))
+        : null;
     }
   } catch {
     // A blocked or malformed localStorage entry must not stop the OBS widget.
@@ -152,6 +187,8 @@ function saveCountdownSession() {
       countdownStorageKey,
       JSON.stringify({
         ended: countdownEnded,
+        baseDurationSeconds: countdownBaseDurationSeconds,
+        baseFollowerCount: countdownBaseFollowerCount,
         highestFollowerCount,
       }),
     );
@@ -343,12 +380,47 @@ function getCountdownState(nowMs = getCountdownNowMs()) {
   );
 
   return calculateCountdownState({
+    baseDurationSeconds: countdownBaseDurationSeconds,
+    extensionBaselineFollowers:
+      countdownBaseFollowerCount ?? config.initialFollowers,
+    followerExtensionEnabled: config.followerExtensionEnabled,
     followerCount: effectiveFollowerCount,
     initialFollowers: config.initialFollowers,
     minutesPerFollower: config.minutesPerFollower,
     nowMs,
     startAtMs: runtimeStartAtMs,
   });
+}
+
+function ensureCountdownBasis(followerCount) {
+  if (!isCountdownMode) {
+    return;
+  }
+
+  const safeFollowerCount = Math.max(0, Math.trunc(followerCount));
+  if (countdownBaseFollowerCount === null) {
+    countdownBaseFollowerCount =
+      config.countdownDurationSource === "manual" ||
+      !config.followerExtensionEnabled
+        ? safeFollowerCount
+        : config.initialFollowers;
+  }
+
+  if (countdownBaseDurationSeconds === null) {
+    if (config.countdownDurationSource === "manual") {
+      countdownBaseDurationSeconds = config.manualDurationMinutes * 60;
+    } else if (config.followerExtensionEnabled) {
+      countdownBaseDurationSeconds = 0;
+    } else {
+      countdownBaseDurationSeconds = Math.round(
+        calculateRingFit(
+          safeFollowerCount,
+          config.initialFollowers,
+          config.minutesPerFollower,
+        ).minutes * 60,
+      );
+    }
+  }
 }
 
 function clearFinalCheck() {
@@ -465,6 +537,7 @@ function renderFollowerCount(
     nowMs = isCountdownMode ? getCountdownNowMs() : Date.now(),
   } = {},
 ) {
+  ensureCountdownBasis(followerCount);
   const result = calculateRingFit(
     followerCount,
     config.initialFollowers,
@@ -526,6 +599,8 @@ function playPreviewAnimation() {
   resetCountdownGainPresentation();
   clearFinalCheck();
   highestFollowerCount = previewPreviousFollowers;
+  countdownBaseFollowerCount = null;
+  countdownBaseDurationSeconds = null;
   countdownEnded = false;
   renderFollowerCount(previewPreviousFollowers, {
     nowMs: isCountdownMode ? getCountdownNowMs() : Date.now(),
@@ -616,12 +691,14 @@ function processFollowerCount(
       pendingCountdownFollowerCount ?? followerCount,
     );
     presentedFollowerCount = mergedFollowerCount;
+    ensureCountdownBasis(mergedFollowerCount);
     const previousHighWater =
       highestFollowerCount ??
       Math.max(config.initialFollowers, mergedFollowerCount);
 
     if (
       !forcePresentation &&
+      config.followerExtensionEnabled &&
       mergedFollowerCount > previousHighWater &&
       shouldDeferCountdownGain(nowMs)
     ) {
@@ -633,7 +710,11 @@ function processFollowerCount(
     }
 
     pendingCountdownFollowerCount = null;
-    if (!countdownEnded && mergedFollowerCount > previousHighWater) {
+    if (
+      config.followerExtensionEnabled &&
+      !countdownEnded &&
+      mergedFollowerCount > previousHighWater
+    ) {
       gainedFollowers = mergedFollowerCount - previousHighWater;
     }
     if (!countdownEnded) {

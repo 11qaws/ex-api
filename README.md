@@ -45,10 +45,12 @@ http://localhost:5173/ex-api/editor/
 (`흰색` = 종이, `투명` = 유리), 운동 시작 시각만 전면에 있고 문구·크기·계산
 설정은 접혀 있습니다. 고른 값은 미리보기와 OBS 링크에 즉시 반영됩니다.
 
-`운동 타이머`를 고르면 한국시간 시작 시각을 `오늘 / 내일 / 이번 주 일요일`
-칩과 `±10분 / ±1시간` 버튼으로 지정하고, `+30초 → 운동시간 → 예상 종료시각`
-릴레이 애니메이션을 확인할 수 있습니다. 기본값은 다음 일요일 14:00이며,
-`session`은 시작 시각에서 `ringfit-YYYYMMDD-HHmm` 형태로 자동 생성됩니다.
+`운동 타이머`를 고르면 시작 운동시간을 팔로워 적립량으로 자동 산정하거나
+원하는 분으로 직접 정할 수 있습니다. 한국시간 시작 시각은 `오늘 / 내일 /
+이번 주 일요일` 칩과 `±10분 / ±1시간` 버튼으로 지정합니다. 팔로워 시간 연장을
+켜면 진행 중 새 팔로워마다 기본 30초가 더해지며, 고급 설정에서 연장을 끌 수도
+있습니다. 기본 시작 시각은 다음 일요일 14:00이고, `session`은 시작 시각에서
+`ringfit-YYYYMMDD-HHmm` 형태로 자동 생성됩니다.
 
 ## 위젯 URL 옵션
 
@@ -68,6 +70,9 @@ http://localhost:5173/ex-api/editor/
 | `mode` | `accrual` | `countdown`이면 예약 시각부터 운동시간 차감 |
 | `startAt` | 없음 | 카운트다운 시작 Unix timestamp(초 또는 밀리초) |
 | `session` | `default` | 최고 팔로워와 종료 상태를 구분하는 게임 이름 |
+| `durationSource` | `followers` | 시작 운동시간 산정 방식 (`followers` 또는 `manual`) |
+| `manualMinutes` | `90` | 직접 설정한 시작 운동시간(분, 1~1440) |
+| `followerExtension` | `1` | 진행 중 팔로워 시간 연장 (`1` 켜기, `0` 끄기) |
 | `followerLabel` | `지금 팔로워` | 왼쪽 상단 문구 |
 | `baselineText` | `기준 {initial}명부터` | 왼쪽 하단 문구 (`{initial}` 치환) |
 | `actionText` | `팔로우 눌러서 일요일 링피트` | 중앙 행동 문구 |
@@ -94,7 +99,9 @@ https://11qaws.github.io/ex-api/?width=1600&height=140&fontSize=72
 실제 시각과 맞습니다.
 
 ```text
-예상 종료시각 = startAt + (최고 팔로워 - initial) × 1명당 운동시간
+시작 운동시간 = 팔로워 적립량 또는 manualMinutes
+추가 운동시간 = followerExtension이 켜진 뒤 늘어난 팔로워 × 1명당 운동시간
+예상 종료시각 = startAt + 시작 운동시간 + 추가 운동시간
 남은시간 = max(예상 종료시각 - 현재시각, 0)
 ```
 

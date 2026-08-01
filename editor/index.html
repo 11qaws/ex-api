@@ -64,6 +64,34 @@
           class="step"
           data-mode-only="countdown"
           hidden
+          aria-labelledby="step-duration"
+        >
+          <h2 id="step-duration">몇 분 할까</h2>
+          <div class="choice-row">
+            <label class="choice duration-option">
+              <input type="radio" name="durationSource" value="followers" checked />
+              <b>팔로워 적립으로 자동</b>
+              <small>기준 팔로워부터 쌓인 시간으로 시작</small>
+            </label>
+            <label class="choice duration-option">
+              <input type="radio" name="durationSource" value="manual" />
+              <b>직접 시간 설정</b>
+              <small>몇 분 운동할지 바로 지정</small>
+            </label>
+          </div>
+          <label class="number-field manual-duration" data-manual-duration-field hidden>
+            <span>시작 타이머</span>
+            <div>
+              <input type="number" name="manualMinutes" value="90" min="1" max="1440" />
+              <b>분</b>
+            </div>
+          </label>
+        </section>
+
+        <section
+          class="step"
+          data-mode-only="countdown"
+          hidden
           aria-labelledby="step-start"
         >
           <h2 id="step-start">언제 시작할까</h2>
@@ -197,6 +225,17 @@
               <label class="number-field">
                 <span>1명당 적립</span>
                 <div><input type="number" name="minutesPerFollower" value="0.5" min="0" max="1440" step="0.5" /><b>분</b></div>
+              </label>
+              <label
+                class="extension-toggle field-wide"
+                data-mode-only="countdown"
+                hidden
+              >
+                <input type="checkbox" name="followerExtension" value="1" checked />
+                <span>
+                  <b>팔로워 증가 시 시간 연장</b>
+                  <small>끄면 시작할 때 정한 시간만 줄어들고 +30초는 붙지 않음</small>
+                </span>
               </label>
             </div>
           </div>

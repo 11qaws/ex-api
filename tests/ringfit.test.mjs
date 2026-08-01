@@ -87,13 +87,16 @@ test("유리 테마를 기본값으로 사용하고 종이 테마도 URL 옵션�
 
 test("운동 타이머 URL은 시작시각과 모든 상태 문구를 읽는다", () => {
   const config = parseWidgetConfig(
-    "?mode=countdown&startAt=1785646800&session=20260802&waitingText=곧%20시작&startPreviewText=운동%20준비&startText=운동%20시작&lastChanceText=끝난줄&endedText=운동%20완료",
+    "?mode=countdown&startAt=1785646800&session=20260802&durationSource=manual&manualMinutes=75&followerExtension=0&waitingText=곧%20시작&startPreviewText=운동%20준비&startText=운동%20시작&lastChanceText=끝난줄&endedText=운동%20완료",
   );
 
   assert.equal(config.mode, "countdown");
   assert.equal(config.startAtMs, 1_785_646_800_000);
   assert.equal(config.sessionId, "20260802");
-  assert.equal(config.actionText, "팔로우 누르면 링피트 +30초");
+  assert.equal(config.countdownDurationSource, "manual");
+  assert.equal(config.manualDurationMinutes, 75);
+  assert.equal(config.followerExtensionEnabled, false);
+  assert.equal(config.actionText, "오늘은 +30초 연장 없음;;");
   assert.equal(config.resultLabel, "운동");
   assert.equal(config.endLabel, "이대로면");
   assert.equal(config.waitingText, "곧 시작");
@@ -118,6 +121,58 @@ test("운동 타이머의 누락 없는 기본 문구를 제공한다", () => {
   assert.equal(config.lastChanceText, "끝난줄?");
   assert.equal(config.endedText, "!!! 링피트 완주 !!!");
   assert.equal(config.previewSequence, "start");
+  assert.equal(config.countdownDurationSource, "followers");
+  assert.equal(config.manualDurationMinutes, 90);
+  assert.equal(config.followerExtensionEnabled, true);
+});
+
+test("직접 설정 타이머는 지정한 분에서 시작하고 팔로워마다 30초 연장된다", () => {
+  const startAtMs = 1_000_000;
+  const beforeGain = calculateCountdownState({
+    baseDurationSeconds: 90 * 60,
+    extensionBaselineFollowers: 1200,
+    followerCount: 1200,
+    minutesPerFollower: 0.5,
+    nowMs: startAtMs,
+    startAtMs,
+  });
+  const afterGain = calculateCountdownState({
+    baseDurationSeconds: 90 * 60,
+    extensionBaselineFollowers: 1200,
+    followerCount: 1202,
+    minutesPerFollower: 0.5,
+    nowMs: startAtMs,
+    startAtMs,
+  });
+
+  assert.equal(beforeGain.accruedSeconds, 5400);
+  assert.equal(afterGain.accruedSeconds, 5460);
+  assert.equal(afterGain.endAtMs - beforeGain.endAtMs, 60_000);
+});
+
+test("팔로워 시간 연장을 끄면 직접 설정한 시작 시간이 고정된다", () => {
+  const startAtMs = 1_000_000;
+  const state = calculateCountdownState({
+    baseDurationSeconds: 45 * 60,
+    extensionBaselineFollowers: 1200,
+    followerCount: 1210,
+    followerExtensionEnabled: false,
+    minutesPerFollower: 0.5,
+    nowMs: startAtMs + 30_000,
+    startAtMs,
+  });
+
+  assert.equal(state.accruedSeconds, 2700);
+  assert.equal(state.remainingSeconds, 2670);
+  assert.equal(state.endAtMs, startAtMs + 2_700_000);
+});
+
+test("시간 연장 없는 URL은 모순되지 않는 기본 행동 문구를 쓴다", () => {
+  const config = parseWidgetConfig(
+    "?mode=countdown&followerExtension=0",
+  );
+
+  assert.equal(config.actionText, "오늘은 +30초 연장 없음;;");
 });
 
 test("운동 시작 연출은 -60초부터 시작해 +3초에 정상 타이머로 전환한다", () => {
